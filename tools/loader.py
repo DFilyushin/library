@@ -2,11 +2,12 @@ from storage.book import Book, BookNotFound
 from storage.author import Author, AuthorNotFound
 from storage.genre import Genre
 from wiring import Wiring
+import io
+import bson
 # from wiring_motor import Wiring
 
 import os
 from time import time
-import timeit
 
 
 class GenreLoader(object):
@@ -18,7 +19,9 @@ class GenreLoader(object):
         self.wiring = Wiring()
 
     def process_file(self, filename):
-        with open(filename, 'r') as file:
+        # with open(filename, 'rb') as file:
+        print(filename)
+        with io.open(filename, encoding='utf-8') as file:
             for line in file:
                 yield line
 
@@ -57,7 +60,7 @@ class BookLoader(object):
 
     def get_file_bookline(self, files):
         for filename in files:
-            with open(filename, 'r') as file:
+            with io.open(filename, encoding='utf-8') as file:
                 for line in file:
                     yield line
 
@@ -81,7 +84,7 @@ class BookLoader(object):
                         middle_name=middle_name
                     )
                 )
-            result.append(author.id)
+            result.append(bson.ObjectId(author.id))
         return result
 
     def process_line(self, lines):
@@ -108,11 +111,11 @@ class BookLoader(object):
                 )
             books.append(book)
             if len(books) > 100:
-                self.wiring.card_dao.create_many(books)
+                self.wiring.book_dao.create_many(books)
                 books = []
             # self.wiring.card_dao.create(book)
         if books:
-            self.wiring.card_dao.create_many(books)
+            self.wiring.book_dao.create_many(books)
 
     def process(self):
         files = self.get_files()
