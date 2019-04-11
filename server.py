@@ -1,6 +1,7 @@
 import os.path
 import flask
 import flask_cors
+from flask import request
 
 from storage.genre import GenreNotFound
 from wiring import Wiring
@@ -20,8 +21,13 @@ class HabrAppDemo(flask.Flask):
         self.wiring = Wiring(env)
 
         self.route("/api/v1/genres/all")(self.get_all_genres)
-        self.route("/api/v1/author/<last_name>/<first_name>/<middle_name>")(self.get_author)
+        self.route("/api/v1/author/byname/<last_name>/<first_name>/<middle_name>")(self.get_author)
         self.route("/api/v1/author/id/<id>")(self.get_author_by_id)
+        self.route("/api/v1/authors/<last_name>")(self.get_authors)
+        self.route("/api/v1/authors/start_with/<start_text_lastname>")(self.get_authors_startwith)
+        self.route("/api/v1/books/by_author/<author_id>")(self.get_books_byauthor)
+        self.route('/api/v1/book/id/<id>')(self.get_book)
+        self.route('/api/v1/books/by_name/<name>')(self.get_book_by_name)
 
     def row2dict(self, row):
         d = {}
@@ -30,35 +36,94 @@ class HabrAppDemo(flask.Flask):
             d[column] = str(getattr(row, column))
         return d
 
-    def get_all_genres(self):
-        dataset = self.wiring.genre_dao.get_all()
+    def dataset2dict(self, dataset):
         result = []
         for row in dataset:
             result.append(self.row2dict(row))
+        return result
+
+    def get_books_byauthor(self, author_id):
+        """Get books by author"""
+        dataset = self.wiring.book_dao.get_by_author(author_id)
+        data = self.dataset2dict(dataset)
+        return flask.jsonify({'status': 'Ok', 'data': data})
+
+    def get_all_genres(self):
+        """
+        Get all genres
+        :return: list of genres
+        """
+        dataset = self.wiring.genre_dao.get_all()
+        genres = [self.row2dict(row) for row in dataset]
+        result = {
+            'status': 'Ok',
+            'data': genres
+        }
         return flask.jsonify(result)
 
     def get_author_by_id(self, id):
-        dataset = self.wiring.author_dao.get_by_id(id)
+        """
+        Get author by uniq Id
+        :param id: Id of author
+        :return: author
+        """
+        try:
+            dataset = self.wiring.author_dao.get_by_id(id)
+        except Exception as err:
+            return flask.jsonify({
+                'status': 'No',
+                'message': str(err)
+            })
         return flask.jsonify(self.row2dict(dataset))
 
     def get_author(self, last_name, first_name, middle_name):
+        """
+        Get authors by full name
+        :param last_name:
+        :param first_name:
+        :param middle_name:
+        :return: author
+        """
         dataset = self.wiring.author_dao.get_by_names(first_name, last_name, middle_name)
         return flask.jsonify(self.row2dict(dataset))
 
-    def card(self, card_id_or_slug):
-        try:
-            card = self.wiring.card_dao.get_by_slug(card_id_or_slug)
-        except CardNotFound:
-            try:
-                card = self.wiring.card_dao.get_by_id(card_id_or_slug)
-            except (CardNotFound, ValueError):
-                return flask.abort(404)
-        return flask.jsonify({
-            k: v
-            for k, v in card.__dict__.items()
-            if v is not None
-        })
+    def get_authors(self, last_name):
+        """
+        Get authors by last name
+        :param last_name:
+        :return: list of authors
+        """
+        dataset = self.wiring.author_dao.get_by_last_name(last_name)
+        result = [self.row2dict(row) for row in dataset]
+        return flask.jsonify(result)
+
+    def get_authors_startwith(self, start_text_lastname):
+        """
+        Get authors last_name startwith start_text
+        :param start_text_lastname
+        :return:
+        """
+        limit = request.args.get('limit', 0, int)
+        skip = request.args.get('skip', 0, int)
+        dataset = self.wiring.author_dao.get_by_start(start_text_lastname, limit=limit, skipped=skip)
+        result = [self.row2dict(row) for row in dataset]
+        return flask.jsonify(result)
+
+    def get_book(self, id):
+        dataset = self.wiring.book_dao.get_by_id(id)
+        if not dataset:
+            return flask.jsonify({'status': 'No', 'message': 'Not found book by id'})
+        result = {
+            'status': 'Ok',
+            'data': self.row2dict(dataset)
+        }
+        return flask.jsonify(result)
+
+    def get_book_by_name(self, name):
+        dataset = self.wiring.book_dao.get_by_name(name)
+        result = [self.row2dict(row) for row in dataset]
+        return flask.jsonify(result)
 
 
-app = HabrAppDemo("habr-app-demo")
+app = HabrAppDemo("library_librusec")
 app.config.from_object("{}_settings".format(env))
