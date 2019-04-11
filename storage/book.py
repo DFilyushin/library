@@ -24,12 +24,13 @@ class Book(object):
         self.authors = authors
         self.series = series
         self.sernum = sernum
-        self.file = filename
+        self.filename = filename
         self.deleted = deleted
         self.lang = lang
         self.keywords = keywords
         self.added = added
         self.genres = genres
+
 
 
 class BookDAO(object, metaclass=abc.ABCMeta):
@@ -51,7 +52,7 @@ class BookDAO(object, metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def get_by_author(self, author: str) -> Book:
+    def get_by_author(self, author: str) -> Iterable[Book]:
         pass
 
     @abc.abstractmethod
