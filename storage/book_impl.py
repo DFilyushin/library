@@ -2,6 +2,7 @@ from typing import Iterable
 import bson
 import bson.errors
 import pymongo
+from pymongo import ASCENDING
 from pymongo.collection import Collection
 from pymongo.database import Database
 
@@ -12,7 +13,10 @@ class MongoBookDAO(BookDAO):
 
     def __init__(self, mongo_database: Database):
         self.database = mongo_database
-
+        self.collection.create_index(
+            [("authors", ASCENDING)],
+            unique=False
+        )
 
     @property
     def collection(self) -> Collection:
@@ -83,10 +87,53 @@ class MongoBookDAO(BookDAO):
         return self._get_one_by_query({'slug': slug})
 
     def get_by_id(self, book_id: str):
-        return self._get_one_by_query({'_id': bson.ObjectId(book_id)})
+        try:
+            documents = self.collection.aggregate([
+                {"$match": {'_id': bson.ObjectId(book_id)}},
+                {"$lookup":
+                    {
+                        'from': 'authors',
+                        'localField': 'authors',
+                        'foreignField': '_id',
+                        'as': 'authors'
+                    }
+                }
+            ])
+        except bson.errors.InvalidId:
+            return None
+        value = next(documents, None)
+        return self.from_bson(value)
 
-    def get_by_author(self, author: str) -> Book:
-        return self._get_many_by_query('{}')
+    def get_by_author(self, author: str) -> Iterable[Book]:
+        try:
+            obj_author = bson.ObjectId(author)
+        except bson.errors.InvalidId:
+            return None
+        documents = self.collection.aggregate([
+            {"$match": {'authors': obj_author}},
+            {"$lookup":
+                {
+                    'from': 'authors',
+                    'localField': 'authors',
+                    'foreignField': '_id',
+                    'as': 'authors'
+                }
+            }
+        ])
+        for document in documents:
+            yield self.from_bson(document)
 
     def get_by_name(self, name: str) -> Book:
-        return self._get_many_by_query('{}')
+        documents = self.collection.aggregate([
+            {"$match": {'name': {'$regex': name}}},
+            {"$lookup":
+                {
+                    'from': 'authors',
+                    'localField': 'authors',
+                    'foreignField': '_id',
+                    'as': 'authors'
+                }
+            }
+        ])
+        for document in documents:
+            yield self.from_bson(document)
