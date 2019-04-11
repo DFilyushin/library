@@ -63,7 +63,7 @@ class MongoGenreDAO(GenreDAO):
         return genre
 
     def _get_by_query(self, query) -> Genre:
-        document = self.collection.find_one(query)
+        document = self.collection.find_one(query).collation({'locale': 'en', 'strength': 2})
         if document is None:
             raise GenreNotFound
         return self.from_bson(document)
