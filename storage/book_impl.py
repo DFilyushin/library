@@ -17,6 +17,19 @@ class MongoBookDAO(BookDAO):
             [("authors", ASCENDING)],
             unique=False
         )
+        self.collection.create_index(
+            [('genres', ASCENDING)],
+            unique=False
+        )
+        self.collection.create_index(
+            [('keywords', ASCENDING)],
+            unique=False
+        )
+        self.collection.create_index(
+            [('name', ASCENDING)],
+            unique=False
+        )
+
 
     @property
     def collection(self) -> Collection:
@@ -109,31 +122,39 @@ class MongoBookDAO(BookDAO):
             obj_author = bson.ObjectId(author)
         except bson.errors.InvalidId:
             return None
+        yield from self.search_book(author=obj_author)
+
+    def get_by_name(self, name: str) -> Book:
+        yield from self.search_book(name=name)
+
+    def search_book(self, name: str = None, author: str = None,  lang: str = None,
+                    series: str = None, keyword: str = None, genre: str = None):
+        match = {'deleted': "0"}
+        if name:
+            match['name'] = {'$regex': name, '$options': 'i'}
+        if lang:
+            match['lang'] = lang
+        if series:
+            match['series'] = series
+        if keyword:
+            match['keywords'] = keyword
+        if author:
+            match['authors'] = author
+        if genre:
+            match['genres'] = genre
         documents = self.collection.aggregate([
-            {"$match": {'authors': obj_author}},
+            {"$match": match},
             {"$lookup":
                 {
                     'from': 'authors',
                     'localField': 'authors',
                     'foreignField': '_id',
-                    'as': 'authors'
+                    'as': 'authors',
                 }
             }
         ])
         for document in documents:
             yield self.from_bson(document)
 
-    def get_by_name(self, name: str) -> Book:
-        documents = self.collection.aggregate([
-            {"$match": {'name': {'$regex': name}}},
-            {"$lookup":
-                {
-                    'from': 'authors',
-                    'localField': 'authors',
-                    'foreignField': '_id',
-                    'as': 'authors'
-                }
-            }
-        ])
-        for document in documents:
-            yield self.from_bson(document)
+    def books_by_genres(self, genre: str):
+        yield from self.search_book(genre=genre)

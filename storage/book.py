@@ -6,7 +6,6 @@ class Book(object):
     def __init__(
             self,
             id: str = None,
-            slug: str = None,
             name: str = None,
             authors: list = None,
             series: str = None,
@@ -19,7 +18,6 @@ class Book(object):
             genres: list =None
     ):
         self.id = id
-        self.slug = slug
         self.name = name
         self.authors = authors
         self.series = series
@@ -30,7 +28,6 @@ class Book(object):
         self.keywords = keywords
         self.added = added
         self.genres = genres
-
 
 
 class BookDAO(object, metaclass=abc.ABCMeta):
@@ -57,6 +54,14 @@ class BookDAO(object, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get_by_name(self, name: str) -> Book:
+        pass
+
+    @abc.abstractmethod
+    def search_book(self, name: str, lang: str, series: str, keyword: str):
+        pass
+
+    @abc.abstractmethod
+    def books_by_genres(self, genre: str):
         pass
 
 
