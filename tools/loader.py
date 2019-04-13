@@ -93,11 +93,14 @@ class BookLoader(object):
         books = []
         for line in lines:
             book_item = line.split(chr(4))
-            keywords = book_item[13].split(',')
+            keywords_list = []
+            keywords = book_item[13]
+            if keywords:
+                keywords_list = keywords.split(',')
             authors = self.get_authors(book_item[0])  # get author keys
             genres = book_item[1].split(':')[:-1] # get genres
             book = Book(
-                    slug=book_item[5],
+                    # slug=book_item[5],
                     name=book_item[2],
                     authors=authors,
                     series=book_item[3],
@@ -105,7 +108,7 @@ class BookLoader(object):
                     filename=book_item[5],
                     deleted=book_item[8],
                     lang=book_item[11],
-                    keywords=keywords,
+                    keywords=keywords_list,
                     added=book_item[10],
                     genres=genres
                 )
