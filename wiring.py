@@ -25,7 +25,7 @@ class Wiring(object):
             host=self.settings.MONGO_HOST,
             port=self.settings.MONGO_PORT)
         self.mongo_database = self.mongo_client[self.settings.MONGO_DATABASE]
-        self.card_dao = MongoBookDAO(self.mongo_database)
+        self.book_dao = MongoBookDAO(self.mongo_database)
         self.author_dao = MongoAuthorDAO(self.mongo_database)
         self.genre_dao = MongoGenreDAO(self.mongo_database)
         self.redis = redis.StrictRedis(
