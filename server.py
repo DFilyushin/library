@@ -2,7 +2,6 @@ import os.path
 import flask
 import flask_cors
 from flask import request
-
 from storage.genre import GenreNotFound
 from wiring import Wiring
 
@@ -20,14 +19,21 @@ class HabrAppDemo(flask.Flask):
 
         self.wiring = Wiring(env)
 
+        # genre api
         self.route("/api/v1/genres/all")(self.get_all_genres)
-        self.route("/api/v1/author/byname/<last_name>/<first_name>/<middle_name>")(self.get_author)
-        self.route("/api/v1/author/id/<id>")(self.get_author_by_id)
-        self.route("/api/v1/authors/<last_name>")(self.get_authors)
+
+        # authors api
+        self.route("/api/v1/author/by_full_name/<last_name>/<first_name>/<middle_name>")(self.get_author)
+        self.route("/api/v1/authors/id/<id>")(self.get_author_by_id)
+        self.route("/api/v1/authors/by_name/<last_name>")(self.get_authors)
         self.route("/api/v1/authors/start_with/<start_text_lastname>")(self.get_authors_startwith)
-        self.route("/api/v1/books/by_author/<author_id>")(self.get_books_byauthor)
+
+        # books api
         self.route('/api/v1/book/id/<id>')(self.get_book)
+        self.route("/api/v1/books/by_author/<author_id>")(self.get_books_by_author)
         self.route('/api/v1/books/by_name/<name>')(self.get_book_by_name)
+        self.route('/api/v1/books/by_genre/<name>')(self.get_book_by_genre)
+        self.route('/api/v1/books/search')(self.get_book_by_search)
 
     def row2dict(self, row):
         d = {}
@@ -42,7 +48,7 @@ class HabrAppDemo(flask.Flask):
             result.append(self.row2dict(row))
         return result
 
-    def get_books_byauthor(self, author_id):
+    def get_books_by_author(self, author_id):
         """Get books by author"""
         dataset = self.wiring.book_dao.get_by_author(author_id)
         data = self.dataset2dict(dataset)
@@ -121,6 +127,30 @@ class HabrAppDemo(flask.Flask):
 
     def get_book_by_name(self, name):
         dataset = self.wiring.book_dao.get_by_name(name)
+        result = [self.row2dict(row) for row in dataset]
+        return flask.jsonify(result)
+
+    def get_book_by_search(self):
+        """
+        Search book by name, series, genre, keyword
+        :return:
+        """
+        f_name = request.args.get('name', '')
+        f_lang = request.args.get('lang', '')
+        f_series = request.args.get('series', '')
+        f_keyword = request.args.get('keyword', '')
+        f_genre = request.args.get('genre', '')
+        dataset = self.wiring.book_dao.search_book(name=f_name, lang=f_lang, series=f_series, keyword=f_keyword, genre=f_genre)
+        result = [self.row2dict(row) for row in dataset]
+        return flask.jsonify(result)
+
+    def get_book_by_genre(self, name):
+        """
+        Get books by genre
+        :param name: Name of genre
+        :return:
+        """
+        dataset = self.wiring.book_dao.books_by_genres(name)
         result = [self.row2dict(row) for row in dataset]
         return flask.jsonify(result)
 
