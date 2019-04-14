@@ -5,6 +5,7 @@ from pymongo import MongoClient
 from pymongo.database import Database
 import dev_settings
 import prod_settings
+import test_settings
 from storage.book import BookDAO
 from storage.book_impl import MongoBookDAO
 from storage.author_impl import MongoAuthorDAO
@@ -15,10 +16,11 @@ class Wiring(object):
 
     def __init__(self, env=None):
         if env is None:
-            env = os.environ.get("APP_ENV", "dev")
+            env = os.environ.get("FLASK_ENV", "dev")
         self.settings = {
             "dev": dev_settings,
             "prod": prod_settings,
+            'test': test_settings
         }[env]
 
         self.mongo_client = MongoClient(
