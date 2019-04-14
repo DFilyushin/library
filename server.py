@@ -3,10 +3,11 @@ import flask
 import flask_cors
 from flask import request
 from storage.genre import GenreNotFound
+from storage.author import AuthorNotFound
 from wiring import Wiring
 
 
-env = os.environ.get("APP_ENV", "dev")
+env = os.environ.get("FLASK_ENV", "dev")
 print("Starting application in {} mode".format(env))
 
 
@@ -49,16 +50,6 @@ class HabrAppDemo(flask.Flask):
             result.append(self.row2dict(row))
         return result
 
-    def get_books_by_author(self, author_id):
-        """
-        Get books by author
-        :param author_id:
-        :return:
-        """
-        dataset = self.wiring.book_dao.get_by_author(author_id)
-        data = self.dataset2dict(dataset)
-        return flask.jsonify(data)
-
     def get_all_genres(self):
         """
         Get all genres
@@ -66,6 +57,8 @@ class HabrAppDemo(flask.Flask):
         """
         dataset = self.wiring.genre_dao.get_all()
         genres = [self.row2dict(row) for row in dataset]
+        if not genres:
+            return flask.abort(404)
         return flask.jsonify(genres)
 
     def get_author_by_id(self, id):
@@ -76,11 +69,10 @@ class HabrAppDemo(flask.Flask):
         """
         try:
             dataset = self.wiring.author_dao.get_by_id(id)
+        except AuthorNotFound:
+            return flask.abort(404)
         except Exception as err:
-            return flask.jsonify({
-                'status': 'No',
-                'message': str(err)
-            })
+            return flask.abort(400)
         return flask.jsonify(self.row2dict(dataset))
 
     def get_author(self, last_name, first_name, middle_name):
@@ -91,7 +83,12 @@ class HabrAppDemo(flask.Flask):
         :param middle_name:
         :return: author
         """
-        dataset = self.wiring.author_dao.get_by_names(first_name, last_name, middle_name)
+        try:
+            dataset = self.wiring.author_dao.get_by_names(first_name, last_name, middle_name)
+        except AuthorNotFound:
+            return flask.abort(404)
+        except Exception as e:
+            return flask.abort(400)
         return flask.jsonify(self.row2dict(dataset))
 
     def get_authors(self, last_name):
@@ -100,8 +97,15 @@ class HabrAppDemo(flask.Flask):
         :param last_name:
         :return: list of authors
         """
-        dataset = self.wiring.author_dao.get_by_last_name(last_name)
+        limit = request.args.get('limit', 100, int)
+        skip = request.args.get('skip', 0, int)
+        try:
+            dataset = self.wiring.author_dao.get_by_last_name(last_name, limit, skip)
+        except Exception as e:
+            return flask.abort(400)
         result = [self.row2dict(row) for row in dataset]
+        if not result:
+            return flask.abort(404)
         return flask.jsonify(result)
 
     def get_authors_startwith(self, start_text_lastname):
@@ -110,10 +114,12 @@ class HabrAppDemo(flask.Flask):
         :param start_text_lastname
         :return:
         """
-        limit = request.args.get('limit', 0, int)
+        limit = request.args.get('limit', 100, int)
         skip = request.args.get('skip', 0, int)
-        dataset = self.wiring.author_dao.get_by_start(start_text_lastname, limit=limit, skipped=skip)
+        dataset = self.wiring.author_dao.get_by_start(start_text_lastname, limit=limit, skip=skip)
         result = [self.row2dict(row) for row in dataset]
+        if not result:
+            return flask.abort(404)
         return flask.jsonify(result)
 
     def get_book(self, bookid):
@@ -128,8 +134,15 @@ class HabrAppDemo(flask.Flask):
         return flask.jsonify(self.row2dict(dataset))
 
     def get_book_by_name(self, name):
+        """
+        Find books by name
+        :param name:
+        :return:
+        """
         dataset = self.wiring.book_dao.get_by_name(name)
         result = [self.row2dict(row) for row in dataset]
+        if not result:
+            return flask.abort(404)
         return flask.jsonify(result)
 
     def get_book_by_search(self):
@@ -142,8 +155,8 @@ class HabrAppDemo(flask.Flask):
         f_series = request.args.get('series', '')
         f_keyword = request.args.get('keyword', '')
         f_genre = request.args.get('genre', '')
-        f_limit = request.args.get('limit', 100)
-        f_skip = request.args.get('skip', 0)
+        f_limit = request.args.get('limit', 100, int)
+        f_skip = request.args.get('skip', 0, int)
         dataset = self.wiring.book_dao.search_book(
             name=f_name, lang=f_lang, series=f_series, keyword=f_keyword, genre=f_genre, skip=f_skip, limit=f_limit)
         result = [self.row2dict(row) for row in dataset]
@@ -158,6 +171,18 @@ class HabrAppDemo(flask.Flask):
         dataset = self.wiring.book_dao.books_by_genres(name)
         result = [self.row2dict(row) for row in dataset]
         return flask.jsonify(result)
+
+    def get_books_by_author(self, author_id):
+        """
+        Get books by author
+        :param author_id:
+        :return:
+        """
+        dataset = self.wiring.book_dao.get_by_author(author_id)
+        data = self.dataset2dict(dataset)
+        if not data:
+            return flask.abort(404)
+        return flask.jsonify(data)
 
     def get_book_content(self, bookid):
         """

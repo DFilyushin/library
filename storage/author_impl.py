@@ -66,37 +66,32 @@ class MongoAuthorDAO(AuthorDAO):
         for document in self.collection.find():
             yield self.from_bson(document)
 
-    def _get_by_query(self, query) -> Iterable[Author]:
-        documents = self.collection.find(query).collation({'locale': 'en', 'strength': 2})
-        if documents is None:
-            raise AuthorNotFound
+    def _get_by_query(self, query, limit, skip) -> Iterable[Author]:
+        documents = self.collection.find(query).collation({'locale': 'en', 'strength': 2}).skip(skip)
+        if limit > 0:
+            documents = documents.limit(limit)
         for document in documents:
             yield self.from_bson(document)
 
     def get_by_id(self, author_id: str):
         document = self.collection.find_one({'_id': bson.ObjectId(author_id)})
         if document is None:
-            raise AuthorNotFound('Not found author by id {}'.format(author_id))
+            raise AuthorNotFound
         return self.from_bson(document)
-
-    def get_by_last_name(self, last_name: str) -> Iterable[Author]:
-        return self._get_by_query({'last_name': last_name})
 
     def get_by_names(self, first_name: str, last_name: str, middle_name: str) -> Author:
         document = self.collection.\
             find_one({'last_name': last_name, 'first_name': first_name, 'middle_name': middle_name})
-            #collation({'locale': 'en', 'strength': 2})
         if document is None:
             raise AuthorNotFound
         return self.from_bson(document)
 
-    def get_by_start(self, start_text: str, limit: int, skipped: int):
-        documents = self.collection.\
-            find({'last_name': {'$regex': '^' + start_text, '$options': 'i'}}).\
-            collation({'locale': 'en', 'strength': 2}).skip(skipped)
-        if limit > 0:
-            documents = documents.limit(limit)
-        if documents is None:
-            raise AuthorNotFound
-        for document in documents:
-            yield self.from_bson(document)
+    def get_by_last_name(self, last_name: str, limit: int, skip: int) -> Iterable[Author]:
+        query = {'last_name': last_name}
+        documents = self._get_by_query(query, limit, skip)
+        yield from documents
+
+    def get_by_start(self, start_text: str, limit: int, skip: int)-> Iterable[Author]:
+        query = {'last_name': {'$regex': '^' + start_text, '$options': 'i'}}
+        documents = self._get_by_query(query, limit, skip)
+        yield from documents
