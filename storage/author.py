@@ -40,7 +40,7 @@ class AuthorDAO(object, metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def get_by_last_name(self, last_name: str) -> Iterable[Author]:
+    def get_by_last_name(self, last_name: str, limit: int, skipped: int) -> Iterable[Author]:
         pass
 
     @abc.abstractmethod
@@ -48,7 +48,7 @@ class AuthorDAO(object, metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def get_by_start(self, start_text: str, limit: int, skipped: int):
+    def get_by_start(self, start_text: str, limit: int, skip: int)-> Iterable[Author]:
         pass
 
 
