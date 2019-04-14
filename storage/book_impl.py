@@ -114,7 +114,10 @@ class MongoBookDAO(BookDAO):
             ])
         except bson.errors.InvalidId:
             return None
-        value = next(documents, None)
+        try:
+            value = next(documents)
+        except StopIteration:
+            return None
         return self.from_bson(value)
 
     def get_by_author(self, author: str) -> Iterable[Book]:
@@ -128,7 +131,8 @@ class MongoBookDAO(BookDAO):
         yield from self.search_book(name=name)
 
     def search_book(self, name: str = None, author: str = None,  lang: str = None,
-                    series: str = None, keyword: str = None, genre: str = None):
+                    series: str = None, keyword: str = None, genre: str = None,
+                    limit: int = 100, skip: int = 0):
         match = {'deleted': "0"}
         if name:
             match['name'] = {'$regex': name, '$options': 'i'}
@@ -144,6 +148,8 @@ class MongoBookDAO(BookDAO):
             match['genres'] = genre
         documents = self.collection.aggregate([
             {"$match": match},
+            {"$skip": int(skip)},
+            {"$limit": int(limit)},
             {"$lookup":
                 {
                     'from': 'authors',
@@ -151,7 +157,7 @@ class MongoBookDAO(BookDAO):
                     'foreignField': '_id',
                     'as': 'authors',
                 }
-            }
+            },
         ])
         for document in documents:
             yield self.from_bson(document)

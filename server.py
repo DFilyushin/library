@@ -20,16 +20,17 @@ class HabrAppDemo(flask.Flask):
         self.wiring = Wiring(env)
 
         # genre api
-        self.route("/api/v1/genres/all")(self.get_all_genres)
+        self.route("/api/v1/genres")(self.get_all_genres)
 
         # authors api
-        self.route("/api/v1/author/by_full_name/<last_name>/<first_name>/<middle_name>")(self.get_author)
-        self.route("/api/v1/authors/id/<id>")(self.get_author_by_id)
+        self.route("/api/v1/authors/<id>")(self.get_author_by_id)
+        self.route("/api/v1/authors/by_full_name/<last_name>/<first_name>/<middle_name>")(self.get_author)
         self.route("/api/v1/authors/by_name/<last_name>")(self.get_authors)
         self.route("/api/v1/authors/start_with/<start_text_lastname>")(self.get_authors_startwith)
 
         # books api
-        self.route('/api/v1/book/id/<id>')(self.get_book)
+        self.route('/api/v1/books/<bookid>')(self.get_book)
+        self.route('/api/v1/books/<bookid>/content')(self.get_book_content)
         self.route("/api/v1/books/by_author/<author_id>")(self.get_books_by_author)
         self.route('/api/v1/books/by_name/<name>')(self.get_book_by_name)
         self.route('/api/v1/books/by_genre/<name>')(self.get_book_by_genre)
@@ -49,10 +50,14 @@ class HabrAppDemo(flask.Flask):
         return result
 
     def get_books_by_author(self, author_id):
-        """Get books by author"""
+        """
+        Get books by author
+        :param author_id:
+        :return:
+        """
         dataset = self.wiring.book_dao.get_by_author(author_id)
         data = self.dataset2dict(dataset)
-        return flask.jsonify({'status': 'Ok', 'data': data})
+        return flask.jsonify(data)
 
     def get_all_genres(self):
         """
@@ -61,11 +66,7 @@ class HabrAppDemo(flask.Flask):
         """
         dataset = self.wiring.genre_dao.get_all()
         genres = [self.row2dict(row) for row in dataset]
-        result = {
-            'status': 'Ok',
-            'data': genres
-        }
-        return flask.jsonify(result)
+        return flask.jsonify(genres)
 
     def get_author_by_id(self, id):
         """
@@ -115,15 +116,16 @@ class HabrAppDemo(flask.Flask):
         result = [self.row2dict(row) for row in dataset]
         return flask.jsonify(result)
 
-    def get_book(self, id):
-        dataset = self.wiring.book_dao.get_by_id(id)
+    def get_book(self, bookid):
+        """
+        Get book by bookId
+        :param bookid: Id of book
+        :return:
+        """
+        dataset = self.wiring.book_dao.get_by_id(bookid)
         if not dataset:
-            return flask.jsonify({'status': 'No', 'message': 'Not found book by id'})
-        result = {
-            'status': 'Ok',
-            'data': self.row2dict(dataset)
-        }
-        return flask.jsonify(result)
+            return flask.abort(404)
+        return flask.jsonify(self.row2dict(dataset))
 
     def get_book_by_name(self, name):
         dataset = self.wiring.book_dao.get_by_name(name)
@@ -140,7 +142,10 @@ class HabrAppDemo(flask.Flask):
         f_series = request.args.get('series', '')
         f_keyword = request.args.get('keyword', '')
         f_genre = request.args.get('genre', '')
-        dataset = self.wiring.book_dao.search_book(name=f_name, lang=f_lang, series=f_series, keyword=f_keyword, genre=f_genre)
+        f_limit = request.args.get('limit', 100)
+        f_skip = request.args.get('skip', 0)
+        dataset = self.wiring.book_dao.search_book(
+            name=f_name, lang=f_lang, series=f_series, keyword=f_keyword, genre=f_genre, skip=f_skip, limit=f_limit)
         result = [self.row2dict(row) for row in dataset]
         return flask.jsonify(result)
 
@@ -153,6 +158,15 @@ class HabrAppDemo(flask.Flask):
         dataset = self.wiring.book_dao.books_by_genres(name)
         result = [self.row2dict(row) for row in dataset]
         return flask.jsonify(result)
+
+    def get_book_content(self, bookid):
+        """
+        Get book content
+        :param bookid: Id of book
+        :return:
+        """
+        file_type = request.args.get('type', 'fb2')
+        return 'Book {} of {}'.format(bookid, file_type)
 
 
 app = HabrAppDemo("library_librusec")

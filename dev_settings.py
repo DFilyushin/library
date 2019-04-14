@@ -5,7 +5,7 @@ Librusec library settings
 # -*- coding: utf-8 -*-
 
 
-LIB_INDEXES = r'/home/filka/librusec/index'
+LIB_INDEXES = r'D:/librusec/index'
 LIB_ARCHIVE = r'~\librusec'
 TMP_DIR = r'\tmp'
 
