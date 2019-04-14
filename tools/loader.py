@@ -126,8 +126,9 @@ class BookLoader(object):
         self.process_line(book_lines)
 
 
-book_loader = BookLoader()
-book_loader.process()
+if __name__ == '__main__':
+    book_loader = BookLoader()
+    book_loader.process()
 
-# gl = GenreLoader()
-# gl.process()
+    # gl = GenreLoader()
+    # gl.process()
