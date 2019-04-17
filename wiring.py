@@ -9,7 +9,7 @@ import test_settings
 from storage.book import BookDAO
 from storage.book_impl import MongoBookDAO
 from storage.author_impl import MongoAuthorDAO
-from storage.genre_impl import MongoGenreDAO
+from storage.genre_impl import MongoGenreDAO, MongoNewGenreDAO
 
 
 class Wiring(object):
@@ -29,7 +29,7 @@ class Wiring(object):
         self.mongo_database = self.mongo_client[self.settings.MONGO_DATABASE]
         self.book_dao = MongoBookDAO(self.mongo_database)
         self.author_dao = MongoAuthorDAO(self.mongo_database)
-        self.genre_dao = MongoGenreDAO(self.mongo_database)
+        self.genre_dao = MongoNewGenreDAO(self.mongo_database)
         self.redis = redis.StrictRedis(
             host=self.settings.REDIS_HOST,
             port=self.settings.REDIS_PORT,

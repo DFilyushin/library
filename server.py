@@ -28,6 +28,7 @@ class HabrAppDemo(flask.Flask):
         self.route("/api/v1/authors/by_full_name/<last_name>/<first_name>/<middle_name>")(self.get_author)
         self.route("/api/v1/authors/by_name/<last_name>")(self.get_authors)
         self.route("/api/v1/authors/start_with/<start_text_lastname>")(self.get_authors_startwith)
+        self.route("/api/v1/authors/letters")(self.get_letter_by_authors)
 
         # books api
         self.route('/api/v1/books/<bookid>')(self.get_book)
@@ -39,9 +40,22 @@ class HabrAppDemo(flask.Flask):
 
     def row2dict(self, row):
         d = {}
-        #  for column in row.__table__.columns:
         for column in row.__dict__:
-            d[column] = str(getattr(row, column))
+            attr = getattr(row, column)
+            if type(attr) == list:
+                in_list = []
+                for item in attr:
+                    in_record = {}
+                    if type(item) == dict:
+                        for key, value in item.items():
+                            in_record[key] = str(value)
+                        in_list.append(in_record)
+                    else:
+                        in_list.append(str(item))
+
+                d[column] = in_list
+            else:
+                d[column] = str(getattr(row, column))
         return d
 
     def dataset2dict(self, dataset):
@@ -49,6 +63,13 @@ class HabrAppDemo(flask.Flask):
         for row in dataset:
             result.append(self.row2dict(row))
         return result
+
+    def get_letter_by_authors(self):
+        dataset = self.wiring.author_dao.letters_by_lastname()
+        genres = list(dict.fromkeys([row['_id'].upper() for row in dataset if ord(row['_id']) >= 65]))
+        if not genres:
+            return flask.abort(404)
+        return flask.jsonify(sorted(genres))
 
     def get_all_genres(self):
         """

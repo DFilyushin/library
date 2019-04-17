@@ -95,3 +95,12 @@ class MongoAuthorDAO(AuthorDAO):
         query = {'last_name': {'$regex': '^' + start_text, '$options': 'i'}}
         documents = self._get_by_query(query, limit, skip)
         yield from documents
+
+    def letters_by_lastname(self):
+        documents = self.collection.aggregate([
+            {"$match": {'last_name': {'$ne': ''}}},
+            {"$project": {'_id': 0, 'item': 1, 'letter': {'$substrCP': ["$last_name", 0, 1]}}},
+            {"$group": {'_id': "$letter"}}
+        ])
+        for document in documents:
+            yield document
