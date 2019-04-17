@@ -1,0 +1,14 @@
+span {
+    padding: 2px 2px;
+    margin: 0;
+}
+
+div:hover {
+    cursor: pointer;
+}
+
+.selected {
+    color: red;
+    font-weight: bold;
+    background-color: #eeeeee;
+}

@@ -1,44 +1,70 @@
 import React, { Component } from 'react';
 import Genre from './models/Genre';
+import './Genres.css';
 
-interface IGenreState {
-    genres: JSX.Element[];
+interface IGenresState {
+    genres: Genre[];
+    selected: string | undefined;
 }
 
-class Genres extends Component<{}, IGenreState> {
-    constructor() {
-        super({});
+class Genres extends Component<{}, IGenresState> {
+    constructor(props: any) {
+        super(props);
         this.state = {
-            genres: []
+            genres: [],
+            selected: ''
         };
     }
 
     componentDidMount() {
-        debugger;
         fetch('http://books.toadstool.online/api/v1/genres')
         .then(results => {
             return results.json();
         })
         .then((data: Array<Genre>) => {
-            let gen = data.map((g) => {
-                return (
-                    <div key={g.id}>
-                        {React.createElement('a', { href:'#' + g.slug }, g.name)}
-                    </div>
-                )
+
+            let sorted = data.sort((a, b) => {
+                if (a.name! < b.name!) {
+                    return -1;
+                }
+                if (a.name! > b.name!) {
+                    return 1;
+                }
+                return 0;
             });
-            let newState: IGenreState = {
-                genres: gen
-            };
-            this.setState(newState);
-            //console.log("state", this.state.genres);
+
+            this.setState({
+                genres: sorted,
+                selected: sorted[0].slug
+            });
         });
+    }
+
+    selectAuthor(event: any, slug: string | undefined) {
+        this.setState({
+            ...this.state,
+            selected: slug
+        })
     }
 
     render() {
         return (
             <div>
-                {this.state.genres}
+                {
+                    this.state.genres.map((g) => {
+                        return g.slug === this.state.selected
+                        ? (
+                            <div key={g.id}>
+                                <b>{g.name}</b>
+                            </div>
+                        )
+                        : (
+                            <div key={g.id} onClick={this.selectAuthor.bind(this, event, g.slug)}>
+                                {g.name}
+                            </div>
+                        );
+                    })
+                }
             </div>
         );
     }
