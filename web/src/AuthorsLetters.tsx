@@ -19,10 +19,13 @@ export default class AuthorsLetters extends Component<Props, State> {
      }
 
     componentDidMount() {
-        this.setState({
-            selectedLetter: this.props.letters[0]
-        });
-        this.props.onLetterChange(this.props.letters[0]);
+        const letter = this.props.letters[0];
+        if (letter) {
+            this.setState({
+                selectedLetter: letter
+            });
+            this.props.onLetterChange(letter);
+        }
     }
 
     onLetterClick(event: any, letter: string) {

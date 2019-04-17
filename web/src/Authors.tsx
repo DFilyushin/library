@@ -5,6 +5,7 @@ import './Authors.css';
 interface Props {
     authors: Author[];
     typed: string;
+    onAuthorChange: (authorId: string | undefined) => void;
 }
 
 interface State {
@@ -23,6 +24,7 @@ export default class Authors extends Component<Props, State> {
         this.setState({
             selectedAuthorId: id
         });
+        this.props.onAuthorChange(id);
     }
 
     render() {
