@@ -33,5 +33,34 @@ class GenreDAO(object, metaclass=abc.ABCMeta):
         pass
 
 
+class NewGenre(object):
+
+    def __init__(self, id: str = None, parent: str = None, titles: list = None, detailed: list = None, sub_genres: list = None):
+        self.id = id
+        self.parent = parent
+        self.titles = titles
+        self.detailed = detailed
+        self.sub_genres = sub_genres
+
+
+class NewGenreDAO(object, metaclass=abc.ABCMeta):
+
+    @abc.abstractmethod
+    def create(self, genre: NewGenre) -> NewGenre:
+        pass
+
+    @abc.abstractmethod
+    def update(self, genre: NewGenre)-> NewGenre:
+        pass
+
+    @abc.abstractmethod
+    def get_all(self) -> Iterable[NewGenre]:
+        pass
+
+    @abc.abstractmethod
+    def get_by_id(self, genre_id: str) -> NewGenre:
+        pass
+
+
 class GenreNotFound(Exception):
     pass

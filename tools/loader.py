@@ -1,9 +1,11 @@
 from storage.book import Book, BookNotFound
 from storage.author import Author, AuthorNotFound
-from storage.genre import Genre
+from storage.genre import Genre, NewGenre
 from wiring import Wiring
 import io
 import bson
+import xml.etree.ElementTree as ET
+
 # from wiring_motor import Wiring
 
 import os
@@ -19,7 +21,6 @@ class GenreLoader(object):
         self.wiring = Wiring()
 
     def process_file(self, filename):
-        # with open(filename, 'rb') as file:
         print(filename)
         with io.open(filename, encoding='utf-8') as file:
             for line in file:
@@ -30,7 +31,7 @@ class GenreLoader(object):
             genre_list = line.split(';')
             genre = Genre(
                 slug=genre_list[0],
-                name=genre_list[1]
+                name=genre_list[1].rstrip()
             )
             try:
                 self.wiring.genre_dao.create(genre)
@@ -126,9 +127,72 @@ class BookLoader(object):
         self.process_line(book_lines)
 
 
+class NewGenreLoader(object):
+    def __init__(self):
+        self.wiring = Wiring()
+        self.genres = dict()
+
+    def get_subgenre(self, node, parent_name):
+        for subgenre in node.getchildren():
+            item = dict()
+            item['parent'] = parent_name
+            item['name'] = subgenre.get('value')
+            item['title'] = []
+            item['detailed'] = []
+            for sg_item in subgenre.getchildren():
+                if sg_item.tag == 'genre-descr':
+                    item['title'].append({sg_item.get('lang'): sg_item.get('title')})
+                elif sg_item.tag == 'genre-alt':
+                    item2 = dict()
+                    item2['parent'] = parent_name
+                    item2['name'] = sg_item.get('value')
+                    item2['title'] = item['title']
+                    item2['detailed'] = []
+                    if not self.genres.get(sg_item.get('value')):
+                        self.genres[sg_item.get('value')]=item2
+                    else:
+                        print('{} skipped 1'.format(sg_item.get('value')))
+            if not self.genres.get(item['name']):
+                self.genres[item['name']] = item
+            else:
+                print('{} skipped 2'.format(item['name']))
+
+    def process(self):
+        path = os.path.join(self.wiring.settings.LIB_INDEXES, 'genres.xml')
+        root = ET.parse(path).getroot()
+        for appt in root.getchildren():  # genre
+            genre_item = dict()
+            genre_item['name'] = appt.get('value')
+            genre_item['parent'] = ''
+            genre_item['title'] = []
+            genre_item['detailed'] = []
+            for elem in appt.getchildren():
+                if elem.tag == 'subgenres':
+                    self.get_subgenre(elem, genre_item['name'])
+                elif elem.tag == 'root-descr':
+                    genre_item['title'].append({elem.get('lang'): elem.get('genre-title')})
+                    genre_item['detailed'].append({elem.get('lang'): elem.get('detailed')})
+            self.genres[appt.get('value')] = genre_item
+
+        for key, item in self.genres.items():
+            genre = NewGenre(
+                id=item['name'],
+                parent=item['parent'],
+                titles=item['title'],
+                detailed=item['detailed']
+            )
+            try:
+                self.wiring.genre_dao.create(genre)
+            except Exception as E:
+                print('Item {} is skipped cause error {}'.format(item['name'], str(E)))
+
+
 if __name__ == '__main__':
     book_loader = BookLoader()
     book_loader.process()
 
-    # gl = GenreLoader()
-    # gl.process()
+    gl = GenreLoader()
+    gl.process()
+
+    new_genre = NewGenreLoader()
+    new_genre.process()

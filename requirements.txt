@@ -6,3 +6,4 @@ bson
 pymongo
 redis
 rq
+lxml
