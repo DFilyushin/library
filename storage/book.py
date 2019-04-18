@@ -68,6 +68,10 @@ class BookDAO(object, metaclass=abc.ABCMeta):
     def get_count_books(self):
         pass
 
+    @abc.abstractmethod
+    def get_genres_by_author(self, id: str):
+        pass
+
 
 class BookNotFound(Exception):
     pass

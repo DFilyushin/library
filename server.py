@@ -31,6 +31,7 @@ class HabrAppDemo(flask.Flask):
         self.route("/api/v1/authors/by_full_name/<last_name>/<first_name>/<middle_name>")(self.get_author)
         self.route("/api/v1/authors/by_name/<last_name>")(self.get_authors)
         self.route("/api/v1/authors/start_with/<start_text_lastname>")(self.get_authors_startwith)
+        self.route("/api/v1/authors/<id>/genres")(self.get_author_genres)
 
         # books api
         self.route('/api/v1/books/<bookid>')(self.get_book)
@@ -229,6 +230,10 @@ class HabrAppDemo(flask.Flask):
         }
         return flask.jsonify(library_info)
 
+    def get_author_genres(self, id):
+        genres = self.wiring.book_dao.get_genres_by_author(id)
+        list_genres = [row['genres'] for row in genres]
+        return flask.jsonify(list_genres)
 
 
 app = HabrAppDemo("library_librusec")

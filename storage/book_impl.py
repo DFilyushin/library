@@ -168,3 +168,16 @@ class MongoBookDAO(BookDAO):
     def get_count_books(self):
         result = self.collection.find({'deleted': '0'}).count()
         return result
+
+    def get_genres_by_author(self, id: str):
+        obj_author = bson.ObjectId(id)
+        documents = self.collection.aggregate([
+            {"$unwind": {"path": "$genres"}},
+            {"$match": {'authors': obj_author}},
+            {"$project": {"genres": "$genres", "_id": 0}},
+            {"$group": {"_id": None, "distinct": {"$addToSet": "$$ROOT"}}},
+            {"$unwind": {"path": "$distinct", "preserveNullAndEmptyArrays" : False}},
+            {"$replaceRoot": {"newRoot" : "$distinct"}}
+        ])
+        for document in documents:
+            yield document
