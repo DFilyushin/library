@@ -22,6 +22,7 @@ class HabrAppDemo(flask.Flask):
 
         # library api
         self.route("/api/v1/info")(self.get_library_info)
+        self.route("/api/v1/ci")(self.cintegra)
 
         # genre api
         self.route("/api/v1/genres")(self.get_all_genres)
@@ -60,6 +61,16 @@ class HabrAppDemo(flask.Flask):
             else:
                 d[column] = str(getattr(row, column))
         return d
+
+    def cintegra(self):
+        #  secret = book_ci_webhook_789dfcab12
+        secret = request.headers.get('X-Hub-Signature', None)
+        if not secret:
+            return flask.abort(404)
+        json = request.json
+        print(json)
+        return '', 200
+
 
     def dataset2dict(self, dataset):
         result = []
