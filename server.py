@@ -22,7 +22,7 @@ class HabrAppDemo(flask.Flask):
 
         # library api
         self.route("/api/v1/info")(self.get_library_info)
-        self.route("/api/v1/ci")(self.cintegra)
+        self.route("/api/v1/ci", methods=['POST'])(self.cintegra)
 
         # genre api
         self.route("/api/v1/genres")(self.get_all_genres)
