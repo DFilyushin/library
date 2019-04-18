@@ -20,6 +20,9 @@ class HabrAppDemo(flask.Flask):
 
         self.wiring = Wiring(env)
 
+        # library api
+        self.route("/api/v1/info")(self.get_library_info)
+
         # genre api
         self.route("/api/v1/genres")(self.get_all_genres)
 
@@ -28,7 +31,6 @@ class HabrAppDemo(flask.Flask):
         self.route("/api/v1/authors/by_full_name/<last_name>/<first_name>/<middle_name>")(self.get_author)
         self.route("/api/v1/authors/by_name/<last_name>")(self.get_authors)
         self.route("/api/v1/authors/start_with/<start_text_lastname>")(self.get_authors_startwith)
-        self.route("/api/v1/authors/letters")(self.get_letter_by_authors)
 
         # books api
         self.route('/api/v1/books/<bookid>')(self.get_book)
@@ -63,13 +65,6 @@ class HabrAppDemo(flask.Flask):
         for row in dataset:
             result.append(self.row2dict(row))
         return result
-
-    def get_letter_by_authors(self):
-        dataset = self.wiring.author_dao.letters_by_lastname()
-        genres = list(dict.fromkeys([row['_id'].upper() for row in dataset if ord(row['_id']) >= 65]))
-        if not genres:
-            return flask.abort(404)
-        return flask.jsonify(sorted(genres))
 
     def get_all_genres(self):
         """
@@ -213,6 +208,27 @@ class HabrAppDemo(flask.Flask):
         """
         file_type = request.args.get('type', 'fb2')
         return 'Book {} of {}'.format(bookid, file_type)
+
+    def get_library_info(self):
+        """
+        Get library info
+        :return:
+        """
+        authors_count = self.wiring.author_dao.get_count_authors()
+        books_count = self.wiring.book_dao.get_count_books()
+        version = self.wiring.library_dao.get_version()
+        letters = self.wiring.author_dao.letters_by_lastname()
+        list_letters = list(dict.fromkeys([row['_id'].upper() for row in letters if ord(row['_id']) >= 65]))
+
+        library_info = {
+            "version": version.version,
+            "last_update": version.added,
+            "authorsCount": authors_count,
+            "booksCount": books_count,
+            "authorsLetters": list_letters
+        }
+        return flask.jsonify(library_info)
+
 
 
 app = HabrAppDemo("library_librusec")

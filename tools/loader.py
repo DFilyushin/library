@@ -1,16 +1,17 @@
 from storage.book import Book, BookNotFound
 from storage.author import Author, AuthorNotFound
 from storage.genre import Genre, NewGenre
+from storage.version import LibraryVersion
 from wiring import Wiring
 import io
 import bson
 import xml.etree.ElementTree as ET
+from datetime import datetime
 
 # from wiring_motor import Wiring
 
 import os
 from time import time
-
 
 class GenreLoader(object):
     """
@@ -187,7 +188,21 @@ class NewGenreLoader(object):
                 print('Item {} is skipped cause error {}'.format(item['name'], str(E)))
 
 
+def update_version():
+    wiring = Wiring()
+    path = os.path.join(wiring.settings.LIB_INDEXES, 'version.info')
+    with io.open(path) as file:
+        num_version = file.read()
+
+    version = LibraryVersion(
+        version=num_version.rstrip(),
+        added=datetime.now().strftime('%Y%m%d')
+    )
+    wiring.library_dao.create(version)
+
+
 if __name__ == '__main__':
+
     book_loader = BookLoader()
     book_loader.process()
 
@@ -196,3 +211,5 @@ if __name__ == '__main__':
 
     new_genre = NewGenreLoader()
     new_genre.process()
+
+    update_version()
