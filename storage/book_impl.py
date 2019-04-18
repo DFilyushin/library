@@ -164,3 +164,7 @@ class MongoBookDAO(BookDAO):
 
     def books_by_genres(self, genre: str):
         yield from self.search_book(genre=genre)
+
+    def get_count_books(self):
+        result = self.collection.find({'deleted': '0'}).count()
+        return result
