@@ -51,6 +51,10 @@ class AuthorDAO(object, metaclass=abc.ABCMeta):
     def get_by_start(self, start_text: str, limit: int, skip: int)-> Iterable[Author]:
         pass
 
+    @abc.abstractmethod
+    def get_count_authors(self):
+        pass
+
 
 class AuthorNotFound(Exception):
     pass

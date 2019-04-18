@@ -104,3 +104,7 @@ class MongoAuthorDAO(AuthorDAO):
         ])
         for document in documents:
             yield document
+
+    def get_count_authors(self):
+        result = self.collection.find({}).count()
+        return result
