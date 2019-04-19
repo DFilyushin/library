@@ -181,3 +181,6 @@ class MongoBookDAO(BookDAO):
         ])
         for document in documents:
             yield document
+
+    def books_by_language(self, languageId, limit: int, skip: int):
+        yield from self.search_book(lang=languageId, limit=limit, skip=skip)

@@ -2,6 +2,7 @@ from storage.book import Book, BookNotFound
 from storage.author import Author, AuthorNotFound
 from storage.genre import Genre, NewGenre
 from storage.version import LibraryVersion
+from storage.language import Language
 from wiring import Wiring
 import io
 import bson
@@ -12,6 +13,39 @@ from datetime import datetime
 
 import os
 from time import time
+
+
+class LanguageLoader(object):
+    """
+    Fb2 language loader
+    """
+
+    def __init__(self):
+        self.wiring = Wiring()
+
+    def process_file(self, filename):
+        with io.open(filename, encoding='utf-8') as file:
+            for line in file:
+                yield line
+
+    def process_line(self, lines):
+        for line in lines:
+            lang_list = line.split(';')
+            language = Language(
+                id=lang_list[1],
+                ext=lang_list[0],
+                name=lang_list[2].rstrip()
+            )
+            try:
+                self.wiring.language_dao.create(language)
+            except Exception as E:
+                print('Line {} is skipped cause error {}'.format(line, str(E)))
+
+    def process(self):
+        path = os.path.join(self.wiring.settings.LIB_INDEXES, 'language.txt')
+        lines = self.process_file(path)
+        self.process_line(lines)
+
 
 class GenreLoader(object):
     """
@@ -202,6 +236,11 @@ def update_version():
 
 
 if __name__ == '__main__':
+
+    lang_loader = LanguageLoader()
+    lang_loader.process()
+
+    exit()
 
     book_loader = BookLoader()
     book_loader.process()

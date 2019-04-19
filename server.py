@@ -5,6 +5,7 @@ from flask import request
 from flask import send_from_directory
 from storage.genre import GenreNotFound
 from storage.author import AuthorNotFound
+from storage.language import LanguageNotFound
 from wiring import Wiring
 
 
@@ -51,13 +52,30 @@ class HabrAppDemo(flask.Flask):
         self.route("/api/v1/languages/<languageId>")(self.get_language)
 
     def get_books_by_language(self, languageId):
-        pass
+        limit = request.args.get('limit', 100, int)
+        skip = request.args.get('skip', 0, int)
+        dataset = self.wiring.book_dao.books_by_language(languageId, limit=limit, skip=skip)
+        result = [self.row2dict(row) for row in dataset]
+        return flask.jsonify(result)
 
     def get_languages(self):
-        pass
+        try:
+            dataset = self.wiring.language_dao.get_all()
+        except Exception as e:
+            return flask.abort(400)
+        result = [self.row2dict(row) for row in dataset]
+        if not result:
+            return flask.abort(404)
+        return flask.jsonify(result)
 
     def get_language(self, languageId):
-        pass
+        try:
+            dataset = self.wiring.language_dao.get_by_id(languageId)
+        except LanguageNotFound:
+            return flask.abort(404)
+        except Exception as e:
+            return flask.abort(400)
+        return flask.jsonify(self.row2dict(dataset))
 
 
     def row2dict(self, row):
