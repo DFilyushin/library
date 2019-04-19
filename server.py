@@ -2,6 +2,7 @@ import os.path
 import flask
 import flask_cors
 from flask import request
+from flask import send_from_directory
 from storage.genre import GenreNotFound
 from storage.author import AuthorNotFound
 from wiring import Wiring
@@ -20,9 +21,11 @@ class HabrAppDemo(flask.Flask):
 
         self.wiring = Wiring(env)
 
+        self.route("/ci", methods=['POST'])(self.cintegra)
+        self.route("/")(self.index)
+
         # library api
         self.route("/api/v1/info")(self.get_library_info)
-        self.route("/api/v1/ci", methods=['POST'])(self.cintegra)
 
         # genre api
         self.route("/api/v1/genres")(self.get_all_genres)
@@ -41,6 +44,21 @@ class HabrAppDemo(flask.Flask):
         self.route('/api/v1/books/by_name/<name>')(self.get_book_by_name)
         self.route('/api/v1/books/by_genre/<name>')(self.get_book_by_genre)
         self.route('/api/v1/books/search')(self.get_book_by_search)
+
+        #language api
+        self.route("/api/v1/languages/<languageId>/books")(self.get_books_by_language)
+        self.route("/api/v1/languages")(self.get_languages)
+        self.route("/api/v1/languages/<languageId>")(self.get_language)
+
+    def get_books_by_language(self, languageId):
+        pass
+
+    def get_languages(self):
+        pass
+
+    def get_language(self, languageId):
+        pass
+
 
     def row2dict(self, row):
         d = {}
@@ -62,6 +80,12 @@ class HabrAppDemo(flask.Flask):
                 d[column] = str(getattr(row, column))
         return d
 
+    def index(self):
+        return send_from_directory(r'./web/build/', 'index.html')
+
+    def static_file(self, path, subpath):
+        return send_from_directory(r'./web/build/', path+'/'+subpath)
+
     def cintegra(self):
         #  secret = book_ci_webhook_789dfcab12
         secret = request.headers.get('X-Hub-Signature', None)
@@ -70,7 +94,6 @@ class HabrAppDemo(flask.Flask):
         json = request.json
         print(json)
         return '', 200
-
 
     def dataset2dict(self, dataset):
         result = []
@@ -247,5 +270,5 @@ class HabrAppDemo(flask.Flask):
         return flask.jsonify(list_genres)
 
 
-app = HabrAppDemo("library_librusec")
+app = HabrAppDemo("library_librusec", static_url_path='/static', static_folder='./web/build/static')
 app.config.from_object("{}_settings".format(env))
