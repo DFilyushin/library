@@ -133,7 +133,7 @@ class MongoNewGenreDAO(NewGenreDAO):
         for document in self.collection.find({'parent': ''}):
             sub_genres = []
             for sub_document in self.collection.find({'parent': document['_id']}):
-                sub_genres.append(self.from_bson(sub_document))
+                sub_genres.append(sub_document)
             document['sub_genres'] = sub_genres
             yield self.from_bson(document)
 
