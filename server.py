@@ -3,11 +3,9 @@ import flask
 import flask_cors
 from flask import request
 from flask import send_from_directory
-from storage.genre import GenreNotFound
 from storage.author import AuthorNotFound
 from storage.language import LanguageNotFound
 from wiring import Wiring
-
 
 env = os.environ.get("FLASK_ENV", "dev")
 print("Starting application in {} mode".format(env))
@@ -59,6 +57,10 @@ class HabrAppDemo(flask.Flask):
         return flask.jsonify(result)
 
     def get_languages(self):
+        languages = self.wiring.book_dao.get_languages_by_books()
+        list_genres = [row['lang'] for row in languages]
+        return flask.jsonify(list_genres)
+
         try:
             dataset = self.wiring.language_dao.get_all()
         except Exception as e:
@@ -77,23 +79,32 @@ class HabrAppDemo(flask.Flask):
             return flask.abort(400)
         return flask.jsonify(self.row2dict(dataset))
 
+    def exp_dict(self, item):
+        out = dict()
+        for key, value in item.items():
+            if type(value) == dict:
+                out[key] = self.exp_dict(value)
+            else:
+                out[key] = str(value)
+        return out
 
     def row2dict(self, row):
-        d = {}
+        d = dict()
         for column in row.__dict__:
             attr = getattr(row, column)
             if type(attr) == list:
                 in_list = []
                 for item in attr:
-                    in_record = {}
                     if type(item) == dict:
-                        for key, value in item.items():
-                            in_record[key] = str(value)
+                        in_record = self.exp_dict(item)
                         in_list.append(in_record)
                     else:
                         in_list.append(str(item))
 
                 d[column] = in_list
+            elif type(attr) == dict:
+                d[column] = dict()
+                d[column] = self.exp_dict(attr)
             else:
                 d[column] = str(getattr(row, column))
         return d
@@ -105,7 +116,6 @@ class HabrAppDemo(flask.Flask):
         return send_from_directory(r'./web/build/', path+'/'+subpath)
 
     def cintegra(self):
-        #  secret = book_ci_webhook_789dfcab12
         secret = request.headers.get('X-Hub-Signature', None)
         if not secret:
             return flask.abort(404)
