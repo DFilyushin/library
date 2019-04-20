@@ -6,6 +6,7 @@ from flask import send_from_directory
 from storage.author import AuthorNotFound
 from storage.language import LanguageNotFound
 from wiring import Wiring
+from readlib import get_fb_content, get_archive_file
 
 env = os.environ.get("FLASK_ENV", "dev")
 print("Starting application in {} mode".format(env))
@@ -270,7 +271,15 @@ class HabrAppDemo(flask.Flask):
         :return:
         """
         file_type = request.args.get('type', 'fb2')
-        return 'Book {} of {}'.format(bookid, file_type)
+        dataset = self.wiring.book_dao.get_by_id(bookid)
+        if not dataset:
+            return flask.abort(404)
+        zip_file = get_archive_file(self.wiring.settings.LIB_ARCHIVE, int(dataset.filename))
+        zip = os.path.join(self.wiring.settings.LIB_ARCHIVE, zip_file)
+        unzipped = get_fb_content(zip, dataset.filename+'.fb2', self.wiring.settings.TMP_DIR)
+        if not unzipped:
+            return flask.abort(404)
+        return flask.send_file(unzipped, mimetype='document/fb2', attachment_filename=dataset.filename+'.fb2', as_attachment=True)
 
     def get_library_info(self):
         """
