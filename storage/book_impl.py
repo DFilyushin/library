@@ -158,6 +158,14 @@ class MongoBookDAO(BookDAO):
                     'as': 'authors',
                 }
             },
+            {"$lookup":
+                {
+                    'from': 'genres_main',
+                    'localField': 'genres',
+                    'foreignField': '_id',
+                    'as': 'genres',
+                }
+            },
         ])
         for document in documents:
             yield self.from_bson(document)
