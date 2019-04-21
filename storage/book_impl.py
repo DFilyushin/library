@@ -184,3 +184,15 @@ class MongoBookDAO(BookDAO):
 
     def books_by_language(self, languageId, limit: int, skip: int):
         yield from self.search_book(lang=languageId, limit=limit, skip=skip)
+
+    def get_languages_by_books(self):
+        documents = self.collection.aggregate([
+            {"$unwind": {"path": "$genres"}},
+            {"$project": {"lang": "$lang", "_id": 0}},
+            {"$group": {"_id": None, "distinct": {"$addToSet": "$$ROOT"}}},
+            {"$unwind": {"path": "$distinct", "preserveNullAndEmptyArrays" : False}},
+            {"$replaceRoot": {"newRoot" : "$distinct"}}
+        ])
+        for document in documents:
+            yield document
+

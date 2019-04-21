@@ -297,7 +297,8 @@ class HabrAppDemo(flask.Flask):
             "last_update": version.added,
             "authorsCount": authors_count,
             "booksCount": books_count,
-            "authorsLetters": list_letters
+            "authorsLetters": list_letters,
+            "seriesCount": 0
         }
         return flask.jsonify(library_info)
 
