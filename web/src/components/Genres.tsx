@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Genre from '../models/Genre';
-import { List, ListItem, ListItemText, withStyles, Theme } from '@material-ui/core';
+import { List, ListItem, ListItemText, withStyles, Theme, Collapse, Divider } from '@material-ui/core';
 
 interface State {
     genres: Genre[];
@@ -13,7 +13,7 @@ const styles = ({ spacing, palette } : Theme) => ({
       backgroundColor: palette.background.paper,
     },
     nested: {
-      paddingLeft: spacing.unit * 4,
+      paddingLeft: spacing.unit,
     },
   });
 
@@ -68,14 +68,44 @@ class Genres extends Component<any, State> {
     }
 
     render() {
+        const { classes } = this.props;
         return (
-            <List component="nav" classes={this.props.classes}>
+            <List component="nav" classes={classes}>
             {
                 this.state.genres.map(g => {
                     return (
+                        <React.Fragment>
                         <ListItemLink href={'#/genres/' + g.id}>
                             <ListItemText primary={g.titles.ru} secondary={g.detailed.ru} />
                         </ListItemLink>
+                        <Divider />
+                        <Collapse in={true} timeout="auto" unmountOnExit>
+                            <List dense={true}>
+                            {
+                                g.sub_genres
+                                .sort((a, b) => {
+                                    if (a.titles.ru < b.titles.ru) {
+                                        return -1;
+                                    }
+                                    if (a.titles.ru > b.titles.ru) {
+                                        return 1;
+                                    }
+                                    return 0;
+                                })
+                                .map(s => {
+                                    return (
+                                        <React.Fragment>
+                                        <ListItemLink href={'#/genres/' + g.id + '/' + s._id} className={classes.nested}>
+                                            <ListItemText inset primary={s.titles.ru} />
+                                        </ListItemLink>
+                                        </React.Fragment>
+                                    );
+                                })
+                            }
+                            </List>
+                        </Collapse>
+                        <Divider />
+                        </React.Fragment>
                     );
                 })
             }

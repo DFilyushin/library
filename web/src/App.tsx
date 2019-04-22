@@ -1,11 +1,10 @@
 import React, { Component } from 'react';
 import Author from './models/Author';
 import Book from './models/Book';
-import Info from './models/Info';
 import AppBar from '@material-ui/core/AppBar';
 import Genres from './components/Genres';
-import { Route, Link, BrowserRouter as Router, HashRouter, withRouter } from 'react-router-dom';
-import { Tabs, Tab, Theme, withStyles, } from '@material-ui/core';
+import { Route, Link, withRouter } from 'react-router-dom';
+import { Tabs, Tab } from '@material-ui/core';
 import Authors from './components/Authors';
 import Books from './components/Books';
 
@@ -33,17 +32,6 @@ class App extends Component<any, State> {
     }
 
     componentWillMount() {
-
-        fetch('http://books.toadstool.online/api/v1/info')
-            .then(results => {
-                return results.json();
-            })
-            .then((data: Info) => {
-                this.setState({
-                    ...this.state,
-                    letters: data.authorsLetters
-                });
-            });
     }
 
     onLetterChange(letter: string) {

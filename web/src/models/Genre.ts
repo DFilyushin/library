@@ -27,7 +27,7 @@ export interface Genre {
      * @type {Array<SubGenre>}
      * @memberof Genre
      */
-    subGenres?: Array<SubGenre>;
+    sub_genres: Array<SubGenre>;
 }
 
 /**
@@ -81,7 +81,7 @@ export interface SubGenre {
      * @type {string}
      * @memberof SubGenre
      */
-    id: string;
+    _id: string;
     /**
      * 
      * @type {SubGenreTitles}
