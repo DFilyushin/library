@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
-import Author from './models/Author';
-import './Authors.css';
+import Author from '../models/Author';
 
 interface Props {
     authors: Author[];
@@ -28,6 +27,7 @@ export default class Authors extends Component<Props, State> {
     }
 
     render() {
+        return (<div>Авторы</div>);
         return (
             <div>
                 {

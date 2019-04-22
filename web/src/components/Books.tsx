@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
-import Book from './models/Book';
-import './Books.css';
+import Book from '../models/Book';
 
 interface Props {
     books: Book[];
@@ -12,6 +11,7 @@ export default class Books extends Component<Props, {}> {
     }
 
     render() {
+        return (<div>Книги</div>);
         return (
             <div>
             {

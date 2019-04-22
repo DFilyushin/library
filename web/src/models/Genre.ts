@@ -3,31 +3,111 @@
  * @export
  * @interface Genre
  */
-interface Genre {
+export interface Genre {
     /**
-     * Internal genre identifier
+     * FB2 genre code
      * @type {string}
      * @memberof Genre
      */
-    id?: string;
+    id: string;
     /**
-     * fb2 genre code
-     * @type {string}
+     * 
+     * @type {GenreTitles}
      * @memberof Genre
      */
-    slug?: string;
+    titles: GenreTitles;
     /**
-     * Genre name in Russian
-     * @type {string}
+     * 
+     * @type {GenreDetailed}
      * @memberof Genre
      */
-    name?: string;
+    detailed: GenreDetailed;
     /**
-     * Genre name in English
-     * @type {string}
+     * Sub-genres
+     * @type {Array<SubGenre>}
      * @memberof Genre
      */
-    nameEn?: string;
+    subGenres?: Array<SubGenre>;
+}
+
+/**
+ * Genre description
+ * @export
+ * @interface GenreDetailed
+ */
+export interface GenreDetailed {
+    /**
+     * 
+     * @type {string}
+     * @memberof GenreDetailed
+     */
+    en: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof GenreDetailed
+     */
+    ru: string;
+}
+
+/**
+ * Genre title
+ * @export
+ * @interface GenreTitles
+ */
+export interface GenreTitles {
+    /**
+     * 
+     * @type {string}
+     * @memberof GenreTitles
+     */
+    en: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof GenreTitles
+     */
+    ru: string;
+}
+
+/**
+ * Sub-genre of a book
+ * @export
+ * @interface SubGenre
+ */
+export interface SubGenre {
+    /**
+     * FB2 genre code
+     * @type {string}
+     * @memberof SubGenre
+     */
+    id: string;
+    /**
+     * 
+     * @type {SubGenreTitles}
+     * @memberof SubGenre
+     */
+    titles: SubGenreTitles;
+}
+
+/**
+ * Sub-genre title
+ * @export
+ * @interface SubGenreTitles
+ */
+export interface SubGenreTitles {
+    /**
+     * 
+     * @type {string}
+     * @memberof SubGenreTitles
+     */
+    en: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SubGenreTitles
+     */
+    ru: string;
 }
 
 export default Genre;

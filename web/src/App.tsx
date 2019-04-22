@@ -1,14 +1,13 @@
 import React, { Component } from 'react';
-import Genres from './Genres';
-import Authors from './Authors';
-import Books from './Books';
-import AuthorsLetters from './AuthorsLetters';
 import Author from './models/Author';
 import Book from './models/Book';
+import Info from './models/Info';
 import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
-import './App.css';
+import Genres from './components/Genres';
+import { Route, Link, BrowserRouter as Router, HashRouter, withRouter } from 'react-router-dom';
+import { Tabs, Tab, Theme, withStyles, } from '@material-ui/core';
+import Authors from './components/Authors';
+import Books from './components/Books';
 
 interface State {
     letters: string[];
@@ -17,7 +16,12 @@ interface State {
     typed: string;
 }
 
-class App extends Component<{}, State> {
+interface Props {
+    history?: any;
+}
+
+class App extends Component<any, State> {
+
     constructor(props: any) {
         super(props);
         this.state = {
@@ -30,21 +34,20 @@ class App extends Component<{}, State> {
 
     componentWillMount() {
 
-        fetch('http://books.toadstool.online/api/v1/authors/letters')
+        fetch('http://books.toadstool.online/api/v1/info')
             .then(results => {
                 return results.json();
             })
-            .then((data: string[]) => {
-                this.setState({ 
-                    letters: data,
-                    authors: [],
-                    typed: ''
+            .then((data: Info) => {
+                this.setState({
+                    ...this.state,
+                    letters: data.authorsLetters
                 });
             });
     }
 
     onLetterChange(letter: string) {
-        fetch('http://books.toadstool.online/api/v1/authors/start_with/' + letter + '?limit=10000')
+        fetch('http://books.toadstool.online/api/v1/authors/start_with/' + letter + '?limit=10')
             .then(results => {
                 return results.json();
             })
@@ -71,35 +74,27 @@ class App extends Component<{}, State> {
     }
 
     render() {
+        debugger;
+        let route = '/' + this.props.history.location.pathname.split('/')[1];
         return (
-            <div className="App">
-                <AppBar position="sticky" color="default">
-                    <Toolbar>
-                        <Typography variant="h6" color="inherit">
-                            <AuthorsLetters letters={this.state.letters} onLetterChange={this.onLetterChange.bind(this)}/>
-                        </Typography>
-                    </Toolbar>
+            <React.Fragment>
+                <AppBar position="sticky">
+                <Tabs value={route}>
+                    <TabLink label="Авторы" value="/" component={Link as any} exact to="/" />
+                    <TabLink label="Жанры" value="/genres" component={Link as any} to="/genres" />
+                    <TabLink label="Книги" value="/books" component={Link as any} to="/books" />
+                </Tabs>
                 </AppBar>
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Авторы</th>
-                        <th>Жанры</th>
-                        <th>Книги</th>
-                    </tr>
-                    </thead>
-
-                    <tbody>
-                    <tr>
-                        <td><Authors authors={this.state.authors} typed={this.state.typed} onAuthorChange={this.onAuthorChange.bind(this)}/></td>
-                        <td><Genres /></td>
-                        <td><Books books={this.state.books} /></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
+                <Route exact path="/" component={Authors} />
+                <Route path="/genres" component={Genres} />
+                <Route path="/books" component={Books} />
+            </React.Fragment>
         );
     }
 }
 
-export default App;
+const TabLink = (props: any) => (
+    <Tab {...props} component={Link as any} />
+)
+
+export default withRouter(App);
