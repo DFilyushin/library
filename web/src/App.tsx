@@ -7,6 +7,7 @@ import { Route, Link, withRouter, Redirect } from 'react-router-dom';
 import { Tabs, Tab } from '@material-ui/core';
 import Authors from './components/Authors';
 import Books from './components/Books';
+import GenresBooks from './components/GenresBooks';
 
 interface State {
     letters: string[];
@@ -69,13 +70,12 @@ class App extends Component<any, State> {
                 <Tabs value={route}>
                     <TabLink label="Авторы" value="/authors" component={Link as any} to="/authors" />
                     <TabLink label="Жанры" value="/genres" component={Link as any} to="/genres" />
-                    <TabLink label="Книги" value="/books" component={Link as any} to="/books" />
                 </Tabs>
                 </AppBar>
                 <Route exact path="/" render={() => <Redirect to="/authors" />} />
-                <Route path="/authors" component={Authors} />
-                <Route path="/genres" component={Genres} />
-                <Route path="/books" component={Books} />
+                <Route exact path="/authors" component={Authors} />
+                <Route exact path="/genres" component={Genres} />
+                <Route path="/genres/:genre" component={GenresBooks} />
             </React.Fragment>
         );
     }

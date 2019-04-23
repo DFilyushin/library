@@ -90,7 +90,8 @@ class Genres extends Component<any, State> {
         })
     }
 
-    handleClick(event: any, genre: string) {
+    handleClick = (event: Event | undefined, genre: string) => {
+        event!.preventDefault();
         this.setState(state => ({ expanded: state.expanded === genre ? '' : genre }));
     };
 
@@ -110,7 +111,7 @@ class Genres extends Component<any, State> {
                         <React.Fragment key={g.id}>
                         <ListItemLink href={'#/genres/' + g.id}>
                             <ListItemText primary={g.titles.ru} secondary={g.detailed.ru} />
-                            <IconButton onClick={this.handleClick.bind(this, event, g.id)}>
+                            <IconButton onClick={() => this.handleClick(event, g.id)}>
                                 {g.id === expanded ? <ExpandLess /> : <ExpandMore />}
                             </IconButton>
                         </ListItemLink>
