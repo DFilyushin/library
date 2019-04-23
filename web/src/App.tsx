@@ -68,14 +68,15 @@ class App extends Component<any, State> {
             <React.Fragment>
                 <AppBar position="sticky">
                 <Tabs value={route}>
-                    <TabLink label="Авторы" value="/authors" component={Link as any} to="/authors" />
                     <TabLink label="Жанры" value="/genres" component={Link as any} to="/genres" />
+                    <TabLink label="Авторы" value="/authors" component={Link as any} to="/authors" />
                 </Tabs>
                 </AppBar>
                 <Route exact path="/" render={() => <Redirect to="/authors" />} />
                 <Route exact path="/authors" component={Authors} />
                 <Route exact path="/genres" component={Genres} />
                 <Route path="/genres/:genre" component={GenresBooks} />
+                <Route path="/authors/:author" component={GenresBooks} />
             </React.Fragment>
         );
     }

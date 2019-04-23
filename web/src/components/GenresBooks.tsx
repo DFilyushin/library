@@ -30,20 +30,64 @@ class GenresBooks extends Component<any, State> {
     }
 
     componentDidMount() {
-        const genre = this.props.history.location.pathname.split('/')[2];
+        const by = this.props.history.location.pathname.split('/')[1];
+        const id = this.props.history.location.pathname.split('/')[2];
 
-        fetch('http://books.toadstool.online/api/v1/books/by_genre/' + genre)
+        const url = this.booksUrl(by, id);
+        if (!url) {
+            return;
+        }
+
+        fetch(url)
             .then(results => {
                 return results.json();
             })
             .then((data: Array<Book>) => {
+                const sorted = data.sort((a, b) => {
+                    if (a.series && !b.series) {
+                        return -1;
+                    }
+                    if (!a.series && b.series) {
+                        return 1;
+                    }
+                    if (a.series && b.series) {
+                        if (a.series < b.series) {
+                            return -1;
+                        }
+                        if (a.series > b.series) {
+                            return 1;
+                        }
+                        if (a.sernum && b.sernum) {
+                            return Number(a.sernum) - Number(b.sernum);
+                        }
+                    }
+                    if (a.name < b.name) {
+                        return -1;
+                    }
+                    if (a.name > b.name) {
+                        return 1;
+                    }
+                    return 0;
+                });
                 this.setState({
-                    books: data
+                    books: sorted
                 });
             })
             .catch(e => {
                 console.log(e);
             })
+    }
+
+    booksUrl(by: string, id: string) {
+        switch(by.toLowerCase())
+        {
+            case 'genres':
+                return 'http://books.toadstool.online/api/v1/books/by_genre/' + id;
+            case 'authors':
+                return 'http://books.toadstool.online/api/v1/books/by_author/' + id;
+            default:
+                return null;
+        }
     }
 
     handleDownloadClick(event: any, book: Book) {
@@ -67,16 +111,15 @@ class GenresBooks extends Component<any, State> {
             {
                 books.map(b => {
                     return (
-                        <Card className={classes.card}>
-                            <CardActionArea>
+                        <Card className={classes.card} key={b.id}>
                                 <CardContent>
-                                    <Typography gutterBottom variant="h5">
+                                    <Typography component="h5" variant="h5">
                                         {b.name}
                                     </Typography>
-                                    <Typography component="p">
+                                    {b.series && <Typography variant="subtitle1" color="textSecondary">{b.series}{Number(b.sernum) > 0 && ': ' + b.sernum}</Typography>}
                                     {
                                         b.authors.map((a, index) => {
-                                            let name = index === 0 ? '' : ', ';
+                                            let name = '';
                                             if (a.last_name) {
                                                 name += a.last_name;
                                             }
@@ -86,13 +129,17 @@ class GenresBooks extends Component<any, State> {
                                             if (a.middle_name) {
                                                 name += ' ' + a.middle_name;
                                             }
-                                            return name;
+
+                                            const link = <Link variant="subtitle2" href={'/#/authors/' + a._id} key={a._id}>{name}</Link>;
+                                            return index === 0 ? link :
+                                                <React.Fragment key={a._id}>
+                                                    {', '}
+                                                    {link}
+                                                </React.Fragment>;
                                         })
                                     }
-                                    </Typography>
                                     <Typography variant="caption">{b.lang}</Typography>
                                 </CardContent>
-                            </CardActionArea>
                             <CardActions>
                                 <Button href={'http://books.toadstool.online/api/v1/books/' + b.id + '/content'}>Скачать</Button>
                             </CardActions>

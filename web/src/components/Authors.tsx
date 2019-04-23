@@ -28,16 +28,16 @@ export default class Authors extends Component<Props, State> {
 
     render() {
         return (<div>Авторы</div>);
-        return (
-            <div>
-                {
-                    this.props.authors.map((author) => {
-                        return author.id === this.state.selectedAuthorId
-                            ? <div key={author.id}><b>{author.last_name} {author.first_name}</b></div>
-                            :<div key={author.id} onClick={this.onAuthorClick.bind(this, event, author.id)}>{author.last_name} {author.first_name}</div>;
-                    })
-                }
-            </div>
-        );
+        // return (
+        //     <div>
+        //         {
+        //             this.props.authors.map((author) => {
+        //                 return author._id === this.state.selectedAuthorId
+        //                     ? <div key={author._id}><b>{author.last_name} {author.first_name}</b></div>
+        //                     :<div key={author._id} onClick={this.onAuthorClick.bind(this, event, author.id)}>{author.last_name} {author.first_name}</div>;
+        //             })
+        //         }
+        //     </div>
+        // );
     }
 }

@@ -9,7 +9,7 @@ export default interface Author {
      * @type {string}
      * @memberof Author
      */
-    id?: string;
+    _id: string;
     /**
      * Author's last name
      * @type {string}
