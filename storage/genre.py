@@ -35,7 +35,13 @@ class GenreDAO(object, metaclass=abc.ABCMeta):
 
 class NewGenre(object):
 
-    def __init__(self, id: str = None, parent: str = None, titles: list = None, detailed: list = None, sub_genres: list = None, count_books: int = 0):
+    def __init__(self,
+                 id: str = None,
+                 parent: str = None,
+                 titles: list = None,
+                 detailed: list = None,
+                 sub_genres: list = None,
+                 count_books: int = 0):
         self.id = id
         self.parent = parent
         self.titles = titles
