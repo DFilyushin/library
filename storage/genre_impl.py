@@ -141,9 +141,7 @@ class MongoNewGenreDAO(NewGenreDAO):
                 {"$group": {
                         "_id": {
                             "genres_main᎐titles": "$genres_main.titles",
-                            "genres_main᎐detailed": "$genres_main.detailed",
                             "genres_main᎐_id": "$genres_main._id",
-                            "genres_main᎐parent": "$genres_main.parent"
                         },
                         "COUNT(books᎐_id)": {
                             "$sum": 1
@@ -152,9 +150,7 @@ class MongoNewGenreDAO(NewGenreDAO):
                 },
                 {"$project": {
                         "genres_main.id": "$_id.genres_main᎐_id",
-                        "genres_main.parent": "$_id.genres_main᎐parent",
                         "genres_main.titles": "$_id.genres_main᎐titles",
-                        "genres_main.detailed": "$_id.genres_main᎐detailed",
                         "count_books": "$COUNT(books᎐_id)",
                         "_id": 0
                     }
@@ -163,7 +159,7 @@ class MongoNewGenreDAO(NewGenreDAO):
             for sub_document in self.collection.aggregate(sql):
                 sub_genres.append(sub_document)
                 counter += sub_document['count_books']
-            document['sub_genres'] = sub_genres
+            document['sub_genres'] = [row['genres_main'] for row in sub_genres]
             document['count_books'] = counter
             yield self.from_bson(document)
 
