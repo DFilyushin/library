@@ -131,6 +131,7 @@ class MongoNewGenreDAO(NewGenreDAO):
 
     def get_all(self) -> Iterable[Genre]:
         for document in self.collection.find({'parent': ''}):
+            counter = 0
             sub_genres = []
             sql = [
                 {"$project": {"_id": 0, "genres_main": "$$ROOT"}},
@@ -150,18 +151,20 @@ class MongoNewGenreDAO(NewGenreDAO):
                     }
                 },
                 {"$project": {
-                        "genres_main._id": "$_id.genres_main᎐_id",
+                        "genres_main.id": "$_id.genres_main᎐_id",
                         "genres_main.parent": "$_id.genres_main᎐parent",
                         "genres_main.titles": "$_id.genres_main᎐titles",
                         "genres_main.detailed": "$_id.genres_main᎐detailed",
-                        "cnt": "$COUNT(books᎐_id)",
+                        "count_books": "$COUNT(books᎐_id)",
                         "_id": 0
                     }
                 }
             ]
             for sub_document in self.collection.aggregate(sql):
                 sub_genres.append(sub_document)
+                counter += sub_document['count_books']
             document['sub_genres'] = sub_genres
+            document['count_books'] = counter
             yield self.from_bson(document)
 
     def get_by_id(self, genre_id: str) -> NewGenre:
