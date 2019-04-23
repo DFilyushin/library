@@ -132,7 +132,34 @@ class MongoNewGenreDAO(NewGenreDAO):
     def get_all(self) -> Iterable[Genre]:
         for document in self.collection.find({'parent': ''}):
             sub_genres = []
-            for sub_document in self.collection.find({'parent': document['_id']}):
+            sql = [
+                {"$project": {"_id": 0, "genres_main": "$$ROOT"}},
+                {"$lookup": {"localField": "genres_main._id","from": "books","foreignField": "genres","as": "books"}},
+                {"$unwind": {"path": "$books","preserveNullAndEmptyArrays": False}},
+                {"$match": {'genres_main.parent': document['_id']}},
+                {"$group": {
+                        "_id": {
+                            "genres_main᎐titles": "$genres_main.titles",
+                            "genres_main᎐detailed": "$genres_main.detailed",
+                            "genres_main᎐_id": "$genres_main._id",
+                            "genres_main᎐parent": "$genres_main.parent"
+                        },
+                        "COUNT(books᎐_id)": {
+                            "$sum": 1
+                        }
+                    }
+                },
+                {"$project": {
+                        "genres_main._id": "$_id.genres_main᎐_id",
+                        "genres_main.parent": "$_id.genres_main᎐parent",
+                        "genres_main.titles": "$_id.genres_main᎐titles",
+                        "genres_main.detailed": "$_id.genres_main᎐detailed",
+                        "cnt": "$COUNT(books᎐_id)",
+                        "_id": 0
+                    }
+                }
+            ]
+            for sub_document in self.collection.aggregate(sql):
                 sub_genres.append(sub_document)
             document['sub_genres'] = sub_genres
             yield self.from_bson(document)
