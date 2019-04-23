@@ -81,7 +81,7 @@ export interface SubGenre {
      * @type {string}
      * @memberof SubGenre
      */
-    _id: string;
+    id: string;
     /**
      * 
      * @type {SubGenreTitles}
