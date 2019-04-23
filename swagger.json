@@ -642,6 +642,10 @@
           "items" : {
             "$ref" : "#/definitions/SubGenre"
           }
+        },
+        "count_books" : {
+          "type" : "integer",
+          "description" : "Count books with the specified genre"
         }
       },
       "required" : [ "id", "titles", "detailed" ]
@@ -666,6 +670,10 @@
             }
           },
           "required" : [ "en", "ru" ]
+        },
+        "count_books" : {
+          "type" : "integer",
+          "description" : "Count books with the specified genre"
         }
       },
       "required" : [ "id", "titles" ]
