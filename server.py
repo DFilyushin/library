@@ -85,6 +85,8 @@ class HabrAppDemo(flask.Flask):
         for key, value in item.items():
             if type(value) == dict:
                 out[key] = self.exp_dict(value)
+            elif type(value) == int:
+                out[key] = int(value)
             else:
                 out[key] = str(value)
         return out
@@ -107,7 +109,11 @@ class HabrAppDemo(flask.Flask):
                 d[column] = dict()
                 d[column] = self.exp_dict(attr)
             else:
-                d[column] = str(getattr(row, column))
+                attr_item = getattr(row, column)
+                if type(attr_item) == int:
+                    d[column] = int(getattr(row, column))
+                else:
+                    d[column] = str(getattr(row, column))
         return d
 
     def index(self):
