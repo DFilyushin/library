@@ -285,7 +285,7 @@ class HabrAppDemo(flask.Flask):
         unzipped = get_fb_content(zip, dataset.filename+'.fb2', self.wiring.settings.TMP_DIR)
         if not unzipped:
             return flask.abort(404)
-        return flask.send_file(unzipped, mimetype='document/fb2', attachment_filename=dataset.filename+'.fb2', as_attachment=True)
+        return flask.send_file(unzipped, mimetype='application/octet-stream', attachment_filename=dataset.filename+'.fb2', as_attachment=True)
 
     def get_library_info(self):
         """
