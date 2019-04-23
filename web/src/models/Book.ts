@@ -12,13 +12,13 @@ export default interface Book {
      * @type {string}
      * @memberof Book
      */
-    id?: string;
+    id: string;
     /**
      * 
      * @type {string}
      * @memberof Book
      */
-    name?: string;
+    name: string;
     /**
      * 
      * @type {Array<string>}
@@ -66,7 +66,7 @@ export default interface Book {
      * @type {Array<Author>}
      * @memberof Book
      */
-    authors?: Array<Author>;
+    authors: Array<Author>;
     /**
      * 
      * @type {string}
