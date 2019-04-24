@@ -1,6 +1,7 @@
 from zipfile import ZipFile, ZIP_DEFLATED
 import os
 import re
+import uuid
 
 
 class BookStore(object):
@@ -13,6 +14,11 @@ class BookStore(object):
         self.books_path = library_path
 
     def get_zip_by_bookid(self, bookid: str)->str:
+        """
+        Find archive file by name of book file
+        :param bookid:
+        :return: Name of archive
+        """
         book_num = int(bookid)
         gen = (archive for archive in os.listdir(self.books_path) if archive.endswith('.zip') and not 'lost' in archive)
         for item in gen:
@@ -26,6 +32,11 @@ class BookStore(object):
                 return item
 
     def get_book_cover(self, bookid: str)->dict:
+        """
+        Extract cover for book
+        :param bookid: id of file in archive
+        :return: dict {type: mimetype, data - string decoded in base64}
+        """
         cover = dict()
         mem = self._extract_book_to_memory(bookid)
         start_eol = mem.find(b'\x0D')
@@ -51,9 +62,19 @@ class BookStore(object):
         return cover
 
     def get_book_ext_info(self, bookid: str)->str:
+        """
+        Extract extension info from fb2 structure
+        :param bookid:
+        :return:
+        """
         pass
 
     def _extract_book_to_memory(self, bookid: str)->bytes:
+        """
+        Extract archive book by bookid to array of bytes
+        :param bookid: id of file in archive
+        :return: array of bytes
+        """
         fb_item = '{}.fb2'.format(bookid)
         zip_name = self.get_zip_by_bookid(bookid)
         zip_path = os.path.join(self.books_path, zip_name)
@@ -66,12 +87,27 @@ class BookStore(object):
             self.zip[zip_name] = zip
         return zip.read(fb_item)
 
+    def extract_books(self, booksid):
+        """
+        Extract books
+        :param booksid: id of file in archive
+        :return: Name of archive
+        """
+        zip_list = [self.extract_book(book) for book in booksid]
+        tmp_file = str(uuid.uuid1())  # name of zip archive
+        tmp_path = os.path.join(self.tmp_path, tmp_file)
+        zip = ZipFile(tmp_path, 'w', ZIP_DEFLATED)
+        for item in zip_list:
+            zip.write(item, os.path.basename(item))
+        zip.close()
+        return tmp_path
+
     def extract_book(self, bookid: str, zipped: bool = False)->str:
         """
         Extract book from zip archive and save to tmp-path
         :param bookid: Code of book
         :param zipped: How return file?
-        :return:
+        :return: Path to extracted file
         """
         fb_item = '{}.fb2'.format(bookid)
         zip_name = self.get_zip_by_bookid(bookid)

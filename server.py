@@ -44,11 +44,25 @@ class HabrAppDemo(flask.Flask):
         self.route('/api/v1/books/by_name/<name>')(self.get_book_by_name)
         self.route('/api/v1/books/by_genre/<name>')(self.get_book_by_genre)
         self.route('/api/v1/books/search')(self.get_book_by_search)
+        self.route('/api/v1/books/<booksids>/package')(self.download_books)
 
-        #language api
+        # language api
         self.route("/api/v1/languages/<languageId>/books")(self.get_books_by_language)
         self.route("/api/v1/languages")(self.get_languages)
         self.route("/api/v1/languages/<languageId>")(self.get_language)
+
+    def download_books(self, booksids: str):
+        ids = booksids.split(',')
+        books = []
+        for item in ids:
+            book = self.wiring.book_dao.get_by_id(item)
+            if book:
+                books.append(book.filename)
+        if not books:
+            flask.abort(404)
+        zip_file = self.wiring.book_store.extract_books(books)
+        return flask.send_file(zip_file, mimetype='application/zip',
+                               attachment_filename='books.zip', as_attachment=True)
 
     def get_books_by_language(self, languageId):
         limit = request.args.get('limit', 100, int)
