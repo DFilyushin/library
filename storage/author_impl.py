@@ -109,7 +109,13 @@ class MongoAuthorDAO(AuthorDAO):
             },
             {
                 "$sort": {"last_name": 1, "first_name": 1, "id": 1}
-            }
+            },
+            {
+                "$skip": skip
+            },
+            {
+                "$limit": limit
+            },
         ]
         documents = self.collection.aggregate(query)
         for document in documents:
