@@ -92,9 +92,28 @@ class MongoAuthorDAO(AuthorDAO):
         yield from documents
 
     def get_by_start(self, start_text: str, limit: int, skip: int)-> Iterable[Author]:
-        query = {'last_name': {'$regex': '^' + start_text, '$options': 'i'}}
-        documents = self._get_by_query(query, limit, skip)
-        yield from documents
+        query = [
+            {
+                "$project": {
+                    "fullname": {"$concat": ["$last_name", " ", "$first_name" ]},
+                    "last_name": "$last_name",
+                    "first_name": "$first_name",
+                    "middle_name": "$middle_name"
+                }
+            },
+            {
+                "$match": {"fullname": {'$regex': '^' + start_text, '$options': 'i'}}
+            },
+            {
+                "$project": {"_id": 1, "first_name": 1, "last_name": 1, "middle_name": 1, "id": 1 }
+            },
+            {
+                "$sort": {"last_name": 1, "first_name": 1, "id": 1}
+            }
+        ]
+        documents = self.collection.aggregate(query)
+        for document in documents:
+            yield self.from_bson(document)
 
     def letters_by_lastname(self):
         documents = self.collection.aggregate([
