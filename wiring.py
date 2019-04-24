@@ -13,6 +13,7 @@ from storage.genre_impl import MongoGenreDAO, MongoNewGenreDAO
 from storage.version_impl import MongoVersionDAO
 from storage.language_impl import MongoLanguageDAO
 from tools.book_store import BookStore
+from storage.stat_impl import MongoStatDAO
 
 
 class Wiring(object):
@@ -36,6 +37,7 @@ class Wiring(object):
         self.library_dao = MongoVersionDAO(self.mongo_database)
         self.language_dao = MongoLanguageDAO(self.mongo_database)
         self.book_store = BookStore(self.settings.LIB_ARCHIVE, self.settings.TMP_DIR)
+        self.stat = MongoStatDAO(self.mongo_database)
         self.redis = redis.StrictRedis(
             host=self.settings.REDIS_HOST,
             port=self.settings.REDIS_PORT,
