@@ -106,23 +106,23 @@ class Genres extends Component<any, State> {
         return (
             <List component="nav" className={classes.root}>
             {
-                genres.map(g => {
+                genres.map(genre => {
                     return (
-                        <React.Fragment key={g.id}>
-                        <ListItemLink href={'#/genres/' + g.id}>
-                            <ListItemText primary={g.titles.ru} secondary={g.detailed.ru} />
-                            <IconButton onClick={() => this.handleClick(event, g.id)}>
-                                {g.id === expanded ? <ExpandLess /> : <ExpandMore />}
+                        <React.Fragment key={genre.id}>
+                        <ListItemLink href={'#/genres/' + genre.id}>
+                            <ListItemText primary={genre.titles.ru} secondary={genre.detailed.ru} />
+                            <IconButton onClick={() => this.handleClick(event, genre.id)}>
+                                {genre.id === expanded ? <ExpandLess /> : <ExpandMore />}
                             </IconButton>
                         </ListItemLink>
                         <Divider />
-                        <Collapse in={g.id === expanded} timeout="auto" unmountOnExit>
+                        <Collapse in={genre.id === expanded} timeout="auto" unmountOnExit>
                             <List dense={true}>
                             {
-                                g.sub_genres.map(s => {
+                                genre.sub_genres.map(subgenre => {
                                     return (
-                                        <ListItemLink href={'#/genres/' + s.id} key={s.id}>
-                                            <ListItemText inset primary={s.titles.ru} />
+                                        <ListItemLink href={'#/genres/' + subgenre.id} key={subgenre.id}>
+                                            <ListItemText inset primary={subgenre.titles.ru} />
                                         </ListItemLink>
                                     );
                                 })

@@ -9,6 +9,12 @@ export default interface Author {
      * @type {string}
      * @memberof Author
      */
+    id: string;
+    /**
+     * Internal author identifier
+     * @type {string}
+     * @memberof Author
+     */
     _id: string;
     /**
      * Author's last name

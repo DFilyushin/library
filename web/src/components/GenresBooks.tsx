@@ -109,39 +109,39 @@ class GenresBooks extends Component<any, State> {
         return (
             <React.Fragment>
             {
-                books.map(b => {
+                books.map(book => {
                     return (
-                        <Card className={classes.card} key={b.id}>
+                        <Card className={classes.card} key={book.id}>
                                 <CardContent>
                                     <Typography component="h5" variant="h5">
-                                        {b.name}
+                                        {book.name}
                                     </Typography>
-                                    {b.series && <Typography variant="subtitle1" color="textSecondary">{b.series}{Number(b.sernum) > 0 && ': ' + b.sernum}</Typography>}
+                                    {book.series && <Typography variant="subtitle1" color="textSecondary">{book.series}{Number(book.sernum) > 0 && ': ' + book.sernum}</Typography>}
                                     {
-                                        b.authors.map((a, index) => {
+                                        book.authors.map((author, index) => {
                                             let name = '';
-                                            if (a.last_name) {
-                                                name += a.last_name;
+                                            if (author.last_name) {
+                                                name += author.last_name;
                                             }
-                                            if (a.first_name) {
-                                                name += ' ' + a.first_name;
+                                            if (author.first_name) {
+                                                name += ' ' + author.first_name;
                                             }
-                                            if (a.middle_name) {
-                                                name += ' ' + a.middle_name;
+                                            if (author.middle_name) {
+                                                name += ' ' + author.middle_name;
                                             }
 
-                                            const link = <Link variant="subtitle2" href={'/#/authors/' + a._id} key={a._id}>{name}</Link>;
+                                            const link = <Link variant="subtitle2" href={'/#/authors/' + author._id} key={author._id}>{name}</Link>;
                                             return index === 0 ? link :
-                                                <React.Fragment key={a._id}>
+                                                <React.Fragment key={author.id}>
                                                     {', '}
                                                     {link}
                                                 </React.Fragment>;
                                         })
                                     }
-                                    <Typography variant="caption">{b.lang}</Typography>
+                                    <Typography variant="caption">{book.lang}</Typography>
                                 </CardContent>
                             <CardActions>
-                                <Button href={'http://books.toadstool.online/api/v1/books/' + b.id + '/content'}>Скачать</Button>
+                                <Button href={'http://books.toadstool.online/api/v1/books/' + book.id + '/content'}>Скачать</Button>
                             </CardActions>
                         </Card>
                     )
