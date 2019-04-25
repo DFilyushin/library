@@ -126,38 +126,6 @@
         }
       }
     },
-    "/api/v1/authors/{authorId}/books" : {
-      "get" : {
-        "tags" : [ "authors", "books" ],
-        "summary" : "Get list of books by author id",
-        "produces" : [ "application/json" ],
-        "parameters" : [ {
-          "name" : "authorId",
-          "in" : "path",
-          "description" : "Id of an author",
-          "required" : true,
-          "type" : "string",
-          "format" : "ObjectId"
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "successful operation",
-            "schema" : {
-              "type" : "array",
-              "items" : {
-                "$ref" : "#/definitions/Book"
-              }
-            }
-          },
-          "400" : {
-            "description" : "Invalid author id"
-          },
-          "404" : {
-            "description" : "Author was not found"
-          }
-        }
-      }
-    },
     "/api/v1/authors/by_full_name/{last_name}/{first_name}/{middle_name}" : {
       "get" : {
         "tags" : [ "authors" ],
@@ -365,9 +333,9 @@
         }
       }
     },
-    "/api/v1/books/by_author/{authorId}" : {
+    "/api/v1/authors/{authorId}/books" : {
       "get" : {
-        "tags" : [ "books" ],
+        "tags" : [ "authors", "books" ],
         "summary" : "Get list of book by author id",
         "produces" : [ "application/json" ],
         "parameters" : [ {
@@ -421,9 +389,9 @@
         }
       }
     },
-    "/api/v1/books/by_genre/{genre}" : {
+    "/api/v1/genres/{genre}/books" : {
       "get" : {
-        "tags" : [ "books" ],
+        "tags" : [ "genres", "books" ],
         "summary" : "Find books by genres",
         "produces" : [ "application/json" ],
         "parameters" : [ {
@@ -431,7 +399,7 @@
           "in" : "path",
           "required" : true,
           "type" : "string",
-          "description" : "Name of genre"
+          "description" : "ID of genre"
         } ],
         "responses" : {
           "200" : {
