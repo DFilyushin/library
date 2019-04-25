@@ -31,43 +31,43 @@ class BookStore(object):
             if (book_num >= start_num) and (book_num <= end_num):
                 return item
 
-    def get_book_cover(self, bookid: str)->dict:
+    def get_book_info(self, bookid: str)->dict:
         """
-        Extract cover for book
+        Extract fb_info for book
         :param bookid: id of file in archive
         :return: dict {type: mimetype, data - string decoded in base64}
         """
-        cover = dict()
+        fb_info = {
+            'cover_mime_type': '',
+            'cover': '',
+            'description': ''
+        }
         mem = self._extract_book_to_memory(bookid)
         start_eol = mem.find(b'\x0D')
         norm_line = mem[:start_eol].decode('IBM437')  # Default code page
         code_page = re.findall('encoding="(.*?)"', norm_line)
         if not code_page:
-            return cover
+            return None
         book_xml = mem.decode(code_page[0])
         find = re.findall(r"<coverpage>\s*(.*?)\s*</coverpage>", book_xml)
         if not find:
-            return {}
+            return None
         image = re.findall('=\"(.*?)\"', find[0])
         image_file_with_tag = image[0]
         if image_file_with_tag[0] != '#':
-            return cover
+            return fb_info
         image_file = image_file_with_tag[1:]
-        regexp_cover = r'<binary\s*id=\"{}\"\s*content-type=\"([\s\S]*)\">([.\s\S]*?)</binary>'.format(image_file)
+        regexp_cover = r'<binary\s*[id=\"{}\"]*\s*content-type=\"([\s\S]*)\" [id=\"{}\"]*\s*>([.\s\S]*?)</binary>'.format(image_file, image_file)
         find = re.findall(regexp_cover, book_xml)
-        if not find:
-            return cover
-        cover['type'] = find[0][0]
-        cover['data'] = find[0][1]
-        return cover
+        if find:
+            fb_info['cover_mime_type'] = find[0][0]
+            fb_info['cover'] = find[0][1]
 
-    def get_book_ext_info(self, bookid: str)->str:
-        """
-        Extract extension info from fb2 structure
-        :param bookid:
-        :return:
-        """
-        pass
+        regexp_descr = r'<description>([.\s\S]*?)</description>'
+        find = re.findall(regexp_descr, book_xml)
+        if find:
+            fb_info['description'] = find[0]
+        return fb_info
 
     def _extract_book_to_memory(self, bookid: str)->bytes:
         """

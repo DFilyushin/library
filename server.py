@@ -49,18 +49,32 @@ class HabrAppDemo(flask.Flask):
         self.route("/api/v1/authors/<id>/genres")(self.get_author_genres)
 
         # books api
-        self.route('/api/v1/books/<bookid>')(self.get_book)
-        self.route('/api/v1/books/<bookid>/content')(self.get_book_content)
+        self.route("/api/v1/books/<bookid>")(self.get_book)
+        self.route("/api/v1/books/<bookid>/content")(self.get_book_content)
         self.route("/api/v1/books/by_author/<author_id>")(self.get_books_by_author)
-        self.route('/api/v1/books/by_name/<name>')(self.get_book_by_name)
-        self.route('/api/v1/books/by_genre/<name>')(self.get_book_by_genre)
-        self.route('/api/v1/books/search')(self.get_book_by_search)
-        self.route('/api/v1/books/<booksids>/package')(self.download_books)
+        self.route("/api/v1/books/by_name/<name>")(self.get_book_by_name)
+        self.route("/api/v1/books/by_genre/<name>")(self.get_book_by_genre)
+        self.route("/api/v1/books/search")(self.get_book_by_search)
+        self.route("/api/v1/books/<booksids>/package")(self.download_books)
+        self.route("/api/v1/books/<booksids>/fb2info")(self.get_fb2info)
 
         # language api
         self.route("/api/v1/languages/<languageId>/books")(self.get_books_by_language)
         self.route("/api/v1/languages")(self.get_languages)
         self.route("/api/v1/languages/<languageId>")(self.get_language)
+
+    @reg_stat
+    def get_fb2info(self, booksids: str):
+        ids = booksids.split(',')
+        books = []
+        for item in ids:
+            book = self.wiring.book_dao.get_by_id(item)
+            if book:
+                d = self.wiring.book_store.get_book_info(book.filename)
+                books.append(d)
+        if not books:
+            flask.abort(404)
+        return flask.jsonify(books)
 
     @reg_stat
     def download_books(self, booksids: str):
