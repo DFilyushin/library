@@ -18,17 +18,6 @@ const styles = ({ palette, shape, breakpoints, spacing, transitions } : Theme) =
       maxWidth: 360,
       backgroundColor: palette.background.paper,
     },
-    search: {
-        borderRadius: shape.borderRadius,
-        color: palette.common.black,
-        backgroundColor: palette.common.white,
-        marginLeft: 0,
-        width: '100%',
-        [breakpoints.up('sm')]: {
-            marginLeft: spacing.unit,
-            width: 'auto',
-        },
-    },
     inputRoot: {
       color: 'inherit',
       width: '100%',
@@ -106,7 +95,7 @@ class Authors extends Component<Props, State> {
                     value={searchText}
                     onChange={this.handleSearchChange}
                     autoFocus
-                    placeholder="Поиск по автору"
+                    placeholder="Поиск по ФИО автора"
                     classes={{
                         root: classes.inputRoot,
                         input: classes.inputInput,
