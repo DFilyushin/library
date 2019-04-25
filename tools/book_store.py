@@ -38,9 +38,15 @@ class BookStore(object):
         :return: dict {type: mimetype, data - string decoded in base64}
         """
         fb_info = {
-            'cover_mime_type': '',
+            'coverType': '',
             'cover': '',
-            'description': ''
+            'description': '',
+            'year': '',
+            'city': '',
+            'isbn': '',
+            'annotation': '',
+            'publisher': '',
+            'name': ''
         }
         mem = self._extract_book_to_memory(bookid)
         start_eol = mem.find(b'\x0D')
@@ -57,16 +63,33 @@ class BookStore(object):
         if image_file_with_tag[0] != '#':
             return fb_info
         image_file = image_file_with_tag[1:]
-        regexp_cover = r'<binary\s*[id=\"{}\"]*\s*content-type=\"([\s\S]*?)\" [id=\"{}\"]*\s*>([.\s\S]*?)</binary>'.format(image_file, image_file)
-        find = re.findall(regexp_cover, book_xml)
+        r1 = image_file.split('.')
+        regexp_cover = r'<binary\s+content-type=\"([^\"]+)\"\s+id=\"{}\.{}\"[^>]*>([.\s\S]*)</binary>'.format(r1[0], r1[1])
+        find = re.findall( regexp_cover, book_xml, re.IGNORECASE)
         if find:
-            fb_info['cover_mime_type'] = find[0][0]
+            fb_info['coverType'] = find[0][0]
             fb_info['cover'] = find[0][1]
 
         regexp_descr = r'<description>([.\s\S]*?)</description>'
         find = re.findall(regexp_descr, book_xml)
         if find:
-            fb_info['description'] = find[0]
+            description = find[0]
+            fb_info['description'] = description
+            isbn = re.findall(r'<isbn>(\S*)</isbn>', description)
+            if isbn:
+                fb_info['isbn'] = isbn
+            year = re.findall(r'<year>(\S*)</year>', description)
+            if year:
+                fb_info['year'] = year
+            city = re.findall(r'<city>([\s\S]*)</city>', description)
+            if city:
+                fb_info['city'] = city
+            annotation = re.findall('<annotation>([\s\S]*)</annotation>', description)
+            if annotation:
+                fb_info['annotation'] = annotation
+            book_name = re.findall('<book-name>([\s\S]*)</book-name>', description)
+            if book_name:
+                fb_info['name'] = book_name
         return fb_info
 
     def _extract_book_to_memory(self, bookid: str)->bytes:
