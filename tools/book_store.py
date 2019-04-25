@@ -13,6 +13,16 @@ class BookStore(object):
         self.tmp_path = tmp
         self.books_path = library_path
 
+    def check_item_exist(self, zip_file: str, item: str)->bool:
+        zip_path = os.path.join(self.books_path, zip_file)
+        try:
+            zip = self.zip[zip_file]
+        except KeyError:
+            zip = ZipFile(zip_path)
+            self.zip[zip_file] = zip
+        result = item in zip.namelist()
+        return result
+
     def get_zip_by_bookid(self, bookid: str)->str:
         """
         Find archive file by name of book file
@@ -20,16 +30,20 @@ class BookStore(object):
         :return: Name of archive
         """
         book_num = int(bookid)
-        gen = (archive for archive in os.listdir(self.books_path) if archive.endswith('.zip') and not 'lost' in archive)
-        for item in gen:
-            fb, start, end = item[:-4].split('-')
-            pos = end.find('_')
-            if pos > -1:
-                end = end[:pos]
-            start_num = int(start)
-            end_num = int(end)
-            if (book_num >= start_num) and (book_num <= end_num):
-                return item
+        gen_zip = (archive for archive in os.listdir(self.books_path) if archive.endswith('.zip') and 'lost' not in archive)
+        gen_lost = (archive for archive in os.listdir(self.books_path) if archive.endswith('.zip') and 'lost' in archive)
+        gens = [gen_zip, gen_lost]
+        for gen in gens:
+            for item in gen:
+                fb, start, end = item[:-4].split('-')
+                pos = end.find('_')
+                if pos > -1:
+                    end = end[:pos]
+                start_num = int(start)
+                end_num = int(end)
+                if (book_num >= start_num) and (book_num <= end_num):
+                    if self.check_item_exist(item, str(bookid)+'.fb2'):
+                        return item
 
     def get_book_info(self, bookid: str)->dict:
         """

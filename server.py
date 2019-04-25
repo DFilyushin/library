@@ -333,7 +333,7 @@ class HabrAppDemo(flask.Flask):
         dataset = self.wiring.book_dao.get_by_id(bookid)
         if not dataset:
             return flask.abort(404)
-        zip_file = get_archive_file(self.wiring.settings.LIB_ARCHIVE, int(dataset.filename))
+        zip_file = self.wiring.book_store.extract_books([int(dataset.filename)])  # get_archive_file(self.wiring.settings.LIB_ARCHIVE, int(dataset.filename))
         zip = os.path.join(self.wiring.settings.LIB_ARCHIVE, zip_file)
         unzipped = get_fb_content(zip, dataset.filename+'.fb2', self.wiring.settings.TMP_DIR)
         if not unzipped:
