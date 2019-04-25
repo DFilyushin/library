@@ -57,7 +57,7 @@ class BookStore(object):
         if image_file_with_tag[0] != '#':
             return fb_info
         image_file = image_file_with_tag[1:]
-        regexp_cover = r'<binary\s*[id=\"{}\"]*\s*content-type=\"([\s\S]*)\" [id=\"{}\"]*\s*>([.\s\S]*?)</binary>'.format(image_file, image_file)
+        regexp_cover = r'<binary\s*[id=\"{}\"]*\s*content-type=\"([\s\S]*?)\" [id=\"{}\"]*\s*>([.\s\S]*?)</binary>'.format(image_file, image_file)
         find = re.findall(regexp_cover, book_xml)
         if find:
             fb_info['cover_mime_type'] = find[0][0]
