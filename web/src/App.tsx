@@ -4,7 +4,8 @@ import Genres from './components/Genres';
 import { Route, Link, withRouter, Redirect } from 'react-router-dom';
 import { Tabs, Tab, Theme, withStyles, Toolbar } from '@material-ui/core';
 import Authors from './components/Authors';
-import GenresBooks from './components/GenresBooks';
+import BooksList from './components/BooksList';
+import Books from './components/Books';
 
 interface State {
 }
@@ -52,16 +53,18 @@ class App extends Component<any, State> {
                 <AppBar position="sticky">
                     <Toolbar>
                         <Tabs value={route}>
-                            <TabLink label="Авторы" value="/authors" component={Link as any} to="/authors" />
                             <TabLink label="Жанры" value="/genres" component={Link as any} to="/genres" />
+                            <TabLink label="Авторы" value="/authors" component={Link as any} to="/authors" />
+                            <TabLink label="Книги" value="/books" component={Link as any} to="/books" />
                         </Tabs>
                     </Toolbar>
                 </AppBar>
-                <Route exact path="/" render={() => <Redirect to="/authors" />} />
+                <Route exact path="/" render={() => <Redirect to="/genres" />} />
                 <Route exact path="/authors" component={Authors} />
                 <Route exact path="/genres" component={Genres} />
-                <Route path="/genres/:genre" component={GenresBooks} />
-                <Route path="/authors/:author" component={GenresBooks} />
+                <Route exact path="/books" component={Books} />
+                <Route path="/genres/:genre" component={BooksList} />
+                <Route path="/authors/:author" component={BooksList} />
             </React.Fragment>
         );
     }
