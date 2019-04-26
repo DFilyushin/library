@@ -56,7 +56,7 @@ class HabrAppDemo(flask.Flask):
         self.route("/api/v1/books/by_genre/<name>")(self.get_book_by_genre)
         self.route("/api/v1/books/search")(self.get_book_by_search)
         self.route("/api/v1/books/<booksids>/package")(self.download_books)
-        self.route("/api/v1/books/<booksids>/fb2info")(self.get_fb2info)
+        self.route("/api/v1/books/<booksid>/fb2info")(self.get_fb2info)
 
         # language api
         self.route("/api/v1/languages/<languageId>/books")(self.get_books_by_language)
@@ -64,17 +64,12 @@ class HabrAppDemo(flask.Flask):
         self.route("/api/v1/languages/<languageId>")(self.get_language)
 
     @reg_stat
-    def get_fb2info(self, booksids: str):
-        ids = booksids.split(',')
-        books = []
-        for item in ids:
-            book = self.wiring.book_dao.get_by_id(item)
-            if book:
-                d = self.wiring.book_store.get_book_info(book.filename)
-                books.append(d)
-        if not books:
+    def get_fb2info(self, booksid: str):
+        book = self.wiring.book_dao.get_by_id(booksid)
+        if not book:
             flask.abort(404)
-        return flask.jsonify(books)
+        d = self.wiring.book_store.get_book_info(book.filename)
+        return flask.jsonify(d)
 
     @reg_stat
     def download_books(self, booksids: str):
