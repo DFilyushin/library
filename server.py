@@ -33,13 +33,17 @@ class HabrAppDemo(flask.Flask):
         self.wiring = Wiring(env)
 
         self.route("/ci", methods=['POST'])(self.cintegra)
-        self.route("/")(self.index)
+        self.route("/", defaults={'path': 'index.html'})(self.index)
+        self.route("/<path:path>")(self.index)
+        self.route("/static/js/<path:path>")(self.static_files)
 
         # library api
         self.route("/api/v1/info")(self.get_library_info)
+        self.route("/api/v1/stat")(self.get_statistic)
 
         # genre api
         self.route("/api/v1/genres")(self.get_all_genres)
+
 
         # authors api
         self.route("/api/v1/authors/<id>")(self.get_author_by_id)
@@ -62,6 +66,14 @@ class HabrAppDemo(flask.Flask):
         self.route("/api/v1/languages/<languageId>/books")(self.get_books_by_language)
         self.route("/api/v1/languages")(self.get_languages)
         self.route("/api/v1/languages/<languageId>")(self.get_language)
+
+    def get_statistic(self):
+        result = dict()
+        result['users'] = 0
+        result['books'] = 0
+        result['rpd'] = 0
+        return flask.jsonify(result)
+
 
     @reg_stat
     def get_fb2info(self, booksid: str):
@@ -153,8 +165,11 @@ class HabrAppDemo(flask.Flask):
                     d[column] = str(getattr(row, column))
         return d
 
-    def index(self):
-        return send_from_directory(r'./web/build/', 'index.html')
+    def index(self, path):
+        return send_from_directory('web/build', path)
+
+    def static_files(self, path):
+        return send_from_directory('web/build/static/js', path)
 
     def static_file(self, path, subpath):
         return send_from_directory(r'./web/build/', path+'/'+subpath)
@@ -344,16 +359,13 @@ class HabrAppDemo(flask.Flask):
         authors_count = self.wiring.author_dao.get_count_authors()
         books_count = self.wiring.book_dao.get_count_books()
         version = self.wiring.library_dao.get_version()
-        letters = self.wiring.author_dao.letters_by_lastname()
-        list_letters = list(dict.fromkeys([row['_id'].upper() for row in letters if ord(row['_id']) >= 65]))
+        user_count = self.wiring.users.get_count_users()
 
         library_info = {
             "version": version.version,
-            "last_update": version.added,
             "authorsCount": authors_count,
             "booksCount": books_count,
-            "authorsLetters": list_letters,
-            "seriesCount": 0
+            "usersCount": user_count,
         }
         return flask.jsonify(library_info)
 
@@ -362,5 +374,5 @@ class HabrAppDemo(flask.Flask):
         list_genres = [row['genres'] for row in genres]
         return flask.jsonify(list_genres)
 
-app = HabrAppDemo("library_librusec", static_url_path='/static', static_folder='./web/build/static')
+app = HabrAppDemo("library_librusec")
 app.config.from_object("{}_settings".format(env))
