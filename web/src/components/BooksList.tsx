@@ -96,14 +96,18 @@ class BooksList extends Component<any, State> {
             return null;
         }
 
+        if (books.length === 1) {
+            return <Redirect to={`/books/${books[0].id}`} />;
+        }
+
         if (downloadBookId) {
-            return <Redirect to={'http://books.toadstool.online/api/v1/books/' + downloadBookId + '/content'} />;
+            return <Redirect to={Endpoints.getBooksContent(downloadBookId)} />;
         }
 
         return (
             <React.Fragment>
             {
-                books.map(book => <BookCard book={book} key={book.id} />)
+                books.map(book => <BookCard book={book} preview={true} key={book.id} />)
             }
             </React.Fragment>
         );
