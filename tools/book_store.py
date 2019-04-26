@@ -21,8 +21,8 @@ class BookStore(object):
             {'name': 'publisher', 'regxp': r'<publisher>([\s\S]*)</publisher>'}
         ]
         self.binary_regexps = [
-            r'<binary\s+content-type=\"([^\"]+)\"\s+id=\"{}\.{}\"[^>]*>([.\s\S]*)</binary>',
-            r'<binary\s+id=\"{}\.{}\"\s+content-type=\"([^\"]+)\">([^\"]*)</binary>'
+            r'<binary\s+content-type=\"([^\"]+)\"\s+id=\"{}[\.{}]?\"[^>]*>([.\s\S]*)</binary>',
+            r'<binary\s+id=\"{}[\.{}]?\"\s+content-type=\"([^\"]+)\">([^\"]*)</binary>'
         ]
         self.fb2_info_keys = ['coverType', 'cover', 'year', 'city', 'isbn', 'annotation', 'publisher', 'name', 'publisher']
 
@@ -71,27 +71,30 @@ class BookStore(object):
         """
         fb_info = dict.fromkeys(self.fb2_info_keys)
         mem = self._extract_book_to_memory(bookid)
+        code_page = 'utf-8'
         start_eol = mem.find(b'\x0D')
-        norm_line = mem[:start_eol].decode('IBM437')  # Default code page
-        code_page = re.findall('encoding="(.*?)"', norm_line)
-        if not code_page:
-            return None
-        book_xml = mem.decode(code_page[0])
+        if start_eol > 0:
+            norm_line = mem[:start_eol].decode('IBM437')  # Default code page
+            find_encoding = re.findall('encoding="(.*?)"', norm_line)
+            code_page = find_encoding[0]
+        book_xml = mem.decode(code_page)
         find = re.findall(r"<coverpage>\s*(.*?)\s*</coverpage>", book_xml)
-        if not find:
-            return None
-        image = re.findall('=\"(.*?)\"', find[0])
-        image_file_with_tag = image[0]
-        if image_file_with_tag[0] != '#':
-            return fb_info
-        image_file = image_file_with_tag[1:]
-        file_name, file_ext = image_file.split('.')
+        if find:
+            image = re.findall('=\"(.*?)\"', find[0])
+            image_file_with_tag = image[0]
+            if image_file_with_tag[0] == '#':
+                image_file = image_file_with_tag[1:]
+                if len(image_file) == 2:
+                    file_name, file_ext = image_file.split('.')
+                else:
+                    file_name = image_file
+                    file_ext = ''
+                for item in self.binary_regexps:
+                    find = re.findall(item.format(file_name, file_ext), book_xml, re.IGNORECASE)
+                    if find:
+                        fb_info['coverType'] = find[0][0]
+                        fb_info['cover'] = find[0][1]
 
-        for item in self.binary_regexps:
-            find = re.findall(item.format(file_name, file_ext), book_xml, re.IGNORECASE)
-            if find:
-                fb_info['coverType'] = find[0][0]
-                fb_info['cover'] = find[0][1]
         regexp_descr = r'<description>([.\s\S]*?)</description>'
         find = re.findall(regexp_descr, book_xml)
         if find:
