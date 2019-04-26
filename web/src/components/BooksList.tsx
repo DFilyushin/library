@@ -96,8 +96,12 @@ class BooksList extends Component<any, State> {
             return null;
         }
 
+        if (books.length === 1) {
+            return <Redirect to={`/books/${books[0].id}`} />;
+        }
+
         if (downloadBookId) {
-            return <Redirect to={'http://books.toadstool.online/api/v1/books/' + downloadBookId + '/content'} />;
+            return <Redirect to={Endpoints.getBooksContent(downloadBookId)} />;
         }
 
         return (

@@ -10,6 +10,7 @@ interface Prop {
     classes: any;
     book: Book;
     preview: boolean;
+    noLinkForAuthorId: string;
 }
 
 interface State {
@@ -21,7 +22,6 @@ const styles = {
         maxWidth: 500
     },
     preview: {
-        width: 200
     },
     cover: {
         width: 151,
@@ -32,6 +32,8 @@ const styles = {
 };
 
 class BookCard extends Component<Prop, State> {
+
+    private abortController = new AbortController();
 
     constructor(props: any) {
         super(props);
@@ -65,6 +67,10 @@ class BookCard extends Component<Prop, State> {
         }
     }
 
+    componentWillUnmount() {
+        this.abortController.abort();
+    }
+
     render() {
         return this.props.preview
             ? this.renderPreview()
@@ -76,7 +82,7 @@ class BookCard extends Component<Prop, State> {
         const { info } = this.state;
         return (
             <Card className={classes.card}>
-                <CardActionArea component="a" href={`/#/books/${book.id}/${this.transliterate(book.name)}`}>
+                <CardActionArea href={`/#/books/${book.id}/${this.transliterate(book.name)}`}>
                 <CardContent className={classes.content}>
                     {info && info.cover && <img style={styles.preview} src={`data:${info.coverType};base64, ${info.cover}`} title={book.name} />}
                     <Typography component="h5" variant="h5">{book.name}</Typography>
@@ -122,7 +128,10 @@ class BookCard extends Component<Prop, State> {
                 name += ' ' + author.middle_name;
             }
 
-            const link = <Link variant="subtitle2" href={'/#/authors/' + author._id} key={author._id}>{name}</Link>;
+            const link = author._id === this.props.noLinkForAuthorId
+                ? <Typography variant="subtitle2" key={author._id}>{name}</Typography>
+                : <Link variant="subtitle2" href={'/#/authors/' + author._id} key={author._id}>{name}</Link>;
+            
             return index === 0 ? link :
                 <React.Fragment key={author._id}>
                     {', '}
