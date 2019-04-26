@@ -32,7 +32,7 @@ class AuthorDAO(object, metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def get_all(self) -> Iterable[Author]:
+    def get_all(self, limit: int, skip: int) -> Iterable[Author]:
         pass
 
     @abc.abstractmethod

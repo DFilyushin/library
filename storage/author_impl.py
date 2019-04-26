@@ -62,8 +62,14 @@ class MongoAuthorDAO(AuthorDAO):
         )
         return author
 
-    def get_all(self) -> Iterable[Author]:
-        for document in self.collection.find():
+    def get_all(self, limit: int, skip: int) -> Iterable[Author]:
+        query = [
+            {'$project': {"id": "$_id", "last_name": "$last_name", "first_name": "$first_name", "middle_name": "$middle_name"}},
+            {"$sort": {"last_name": 1, "first_name": 1}},
+            {"$skip": skip},
+            {"$limit": limit}
+        ]
+        for document in self.collection.aggregate(query):
             yield self.from_bson(document)
 
     def _get_by_query(self, query, limit, skip) -> Iterable[Author]:

@@ -44,12 +44,10 @@ class HabrAppDemo(flask.Flask):
         # genre api
         self.route("/api/v1/genres")(self.get_all_genres)
 
-
         # authors api
-        self.route("/api/v1/authors/<id>")(self.get_author_by_id)
-        self.route("/api/v1/authors/by_full_name/<last_name>/<first_name>/<middle_name>")(self.get_author)
-        self.route("/api/v1/authors/by_name/<last_name>")(self.get_authors)
-        self.route("/api/v1/authors/start_with/<start_text_lastname>")(self.get_authors_startwith)
+        self.route("/api/v1/authors")(self.get_all_authors)
+        self.route("/api/v1/authors/<authorid>")(self.get_author_by_id)
+        self.route("/api/v1/authors/start_with/<start_text_fullname>")(self.get_authors_startwith)
         self.route("/api/v1/authors/<id>/genres")(self.get_author_genres)
 
         # books api
@@ -74,6 +72,18 @@ class HabrAppDemo(flask.Flask):
         result['rpd'] = 0
         return flask.jsonify(result)
 
+    def get_all_authors(self):
+        """
+        Get all authors sorted by last name
+        :return:
+        """
+        limit = int(request.args.get('limit', self.wiring.settings.DEFAULT_LIMITS, int))
+        skip = int(request.args.get('skip', self.wiring.settings.DEFAULT_SKIP_RECORD, int))
+        dataset = self.wiring.author_dao.get_all(limit, skip)
+        result = [self.row2dict(row) for row in dataset]
+        if not result:
+            return flask.abort(404)
+        return flask.jsonify(result)
 
     @reg_stat
     def get_fb2info(self, booksid: str):
@@ -99,8 +109,8 @@ class HabrAppDemo(flask.Flask):
 
     @reg_stat
     def get_books_by_language(self, languageId):
-        limit = request.args.get('limit', 100, int)
-        skip = request.args.get('skip', 0, int)
+        limit = request.args.get('limit', self.wiring.settings.DEFAULT_LIMITS, int)
+        skip = request.args.get('skip', self.wiring.settings.DEFAULT_SKIP_RECORD, int)
         dataset = self.wiring.book_dao.books_by_language(languageId, limit=limit, skip=skip)
         result = [self.row2dict(row) for row in dataset]
         return flask.jsonify(result)
@@ -110,15 +120,6 @@ class HabrAppDemo(flask.Flask):
         languages = self.wiring.book_dao.get_languages_by_books()
         list_genres = [row['lang'] for row in languages]
         return flask.jsonify(list_genres)
-
-        try:
-            dataset = self.wiring.language_dao.get_all()
-        except Exception as e:
-            return flask.abort(400)
-        result = [self.row2dict(row) for row in dataset]
-        if not result:
-            return flask.abort(404)
-        return flask.jsonify(result)
 
     def get_language(self, languageId):
         try:
@@ -201,14 +202,14 @@ class HabrAppDemo(flask.Flask):
         return flask.jsonify(genres)
 
     @reg_stat
-    def get_author_by_id(self, id):
+    def get_author_by_id(self, authorid):
         """
         Get author by uniq Id
-        :param id: Id of author
+        :param authorid: Id of author
         :return: author
         """
         try:
-            dataset = self.wiring.author_dao.get_by_id(id)
+            dataset = self.wiring.author_dao.get_by_id(authorid)
         except AuthorNotFound:
             return flask.abort(404)
         except Exception as err:
@@ -216,50 +217,15 @@ class HabrAppDemo(flask.Flask):
         return flask.jsonify(self.row2dict(dataset))
 
     @reg_stat
-    def get_author(self, last_name, first_name, middle_name):
-        """
-        Get authors by full name
-        :param last_name:
-        :param first_name:
-        :param middle_name:
-        :return: author
-        """
-        try:
-            dataset = self.wiring.author_dao.get_by_names(first_name, last_name, middle_name)
-        except AuthorNotFound:
-            return flask.abort(404)
-        except Exception as e:
-            return flask.abort(400)
-        return flask.jsonify(self.row2dict(dataset))
-
-    @reg_stat
-    def get_authors(self, last_name):
-        """
-        Get authors by last name
-        :param last_name:
-        :return: list of authors
-        """
-        limit = request.args.get('limit', 100, int)
-        skip = request.args.get('skip', 0, int)
-        try:
-            dataset = self.wiring.author_dao.get_by_last_name(last_name, limit, skip)
-        except Exception as e:
-            return flask.abort(400)
-        result = [self.row2dict(row) for row in dataset]
-        if not result:
-            return flask.abort(404)
-        return flask.jsonify(result)
-
-    @reg_stat
-    def get_authors_startwith(self, start_text_lastname):
+    def get_authors_startwith(self, start_text_fullname):
         """
         Get authors last_name startwith start_text
-        :param start_text_lastname
+        :param start_text_fullname
         :return:
         """
-        limit = request.args.get('limit', 100, int)
-        skip = request.args.get('skip', 0, int)
-        dataset = self.wiring.author_dao.get_by_start(start_text_lastname, limit=limit, skip=skip)
+        limit = request.args.get('limit', self.wiring.settings.DEFAULT_LIMITS, int)
+        skip = request.args.get('skip', self.wiring.settings.DEFAULT_SKIP_RECORD, int)
+        dataset = self.wiring.author_dao.get_by_start(start_text_fullname, limit=limit, skip=skip)
         result = [self.row2dict(row) for row in dataset]
         if not result:
             return flask.abort(404)
@@ -301,8 +267,8 @@ class HabrAppDemo(flask.Flask):
         f_series = request.args.get('series', '')
         f_keyword = request.args.get('keyword', '')
         f_genre = request.args.get('genre', '')
-        f_limit = request.args.get('limit', 100, int)
-        f_skip = request.args.get('skip', 0, int)
+        f_limit = request.args.get('limit', self.wiring.settings.DEFAULT_LIMITS, int)
+        f_skip = request.args.get('skip', self.wiring.settings.DEFAULT_SKIP_RECORD, int)
         dataset = self.wiring.book_dao.search_book(
             name=f_name, lang=f_lang, series=f_series, keyword=f_keyword, genre=f_genre, skip=f_skip, limit=f_limit)
         result = [self.row2dict(row) for row in dataset]
