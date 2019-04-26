@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Author from '../models/Author';
 import { Typography, ListItemText, List, ListItem, Paper, Theme, withStyles, TextField, InputBase } from '@material-ui/core';
-import { red } from '@material-ui/core/colors';
+import Endpoints from '../Endpoints';
 
 interface Props {
     classes: any;
@@ -12,7 +12,7 @@ interface State {
     authors: Author[];
 }
 
-const styles = ({ palette, shape, breakpoints, spacing, transitions } : Theme) => ({
+const styles = ({ palette, spacing } : Theme) => ({
     root: {
       width: '100%',
       maxWidth: 360,
@@ -28,14 +28,7 @@ const styles = ({ palette, shape, breakpoints, spacing, transitions } : Theme) =
       paddingRight: spacing.unit,
       paddingBottom: spacing.unit,
       paddingLeft: spacing.unit,
-      transition: transitions.create('width'),
       width: '100%',
-      [breakpoints.up('sm')]: {
-        width: 120,
-        '&:focus': {
-          width: 200,
-        },
-      },
     },
   });
 
@@ -69,7 +62,7 @@ class Authors extends Component<Props, State> {
         const searchByAuthor = event.target.value;
 
         if (searchByAuthor) {
-            fetch('http://books.toadstool.online/api/v1/authors/start_with/' + searchByAuthor + '?limit=15')
+            fetch(Endpoints.getAuthorsStartWith(searchByAuthor, 15, 0))
                 .then(results => {
                     return results.json();
                 })
@@ -106,7 +99,7 @@ class Authors extends Component<Props, State> {
                         {
                             authors.map((author) => {
                                 return (
-                                    <ListItemLink href={'/#/authors/' + author.id}>
+                                    <ListItemLink href={'/#/authors/' + author.id} key={author.id}>
                                         <ListItemText>{author.last_name} {author.first_name} {author.middle_name}</ListItemText>
                                     </ListItemLink>
                                 )

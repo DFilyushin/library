@@ -4,6 +4,7 @@ import { List, ListItem, ListItemText, withStyles, Theme, Collapse, Divider, Lis
 import CircularProgress from '@material-ui/core/CircularProgress';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
+import Endpoints from '../Endpoints';
 
 interface State {
     loading: boolean;
@@ -43,7 +44,7 @@ class Genres extends Component<any, State> {
         }
 
         this.setState({ loading: true })
-        fetch('http://books.toadstool.online/api/v1/genres')
+        fetch(Endpoints.getGenres())
             .then(results => {
                 return results.json();
             })

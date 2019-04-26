@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import Book from '../models/Book';
 import { Redirect } from 'react-router';
 import BookCard from './BookCard';
+import Endpoints from '../Endpoints';
 
 interface State
 {
@@ -34,32 +35,7 @@ class BooksList extends Component<any, State> {
                 return results.json();
             })
             .then((data: Array<Book>) => {
-                const sorted = data.sort((a, b) => {
-                    if (a.series && !b.series) {
-                        return -1;
-                    }
-                    if (!a.series && b.series) {
-                        return 1;
-                    }
-                    if (a.series && b.series) {
-                        if (a.series < b.series) {
-                            return -1;
-                        }
-                        if (a.series > b.series) {
-                            return 1;
-                        }
-                        if (a.sernum && b.sernum) {
-                            return Number(a.sernum) - Number(b.sernum);
-                        }
-                    }
-                    if (a.name < b.name) {
-                        return -1;
-                    }
-                    if (a.name > b.name) {
-                        return 1;
-                    }
-                    return 0;
-                });
+                const sorted = data.sort((a, b) => this.compareBySequenceAndName(a, b));
                 this.setState({
                     books: sorted
                 });
@@ -69,15 +45,42 @@ class BooksList extends Component<any, State> {
             })
     }
 
-    booksUrl(by: string, id: string) {
+    private compareBySequenceAndName(a: Book, b: Book): number {
+        if (a.series && !b.series) {
+            return -1;
+        }
+        if (!a.series && b.series) {
+            return 1;
+        }
+        if (a.series && b.series) {
+            if (a.series < b.series) {
+                return -1;
+            }
+            if (a.series > b.series) {
+                return 1;
+            }
+            if (a.sernum && b.sernum) {
+                return Number(a.sernum) - Number(b.sernum);
+            }
+        }
+        if (a.name < b.name) {
+            return -1;
+        }
+        if (a.name > b.name) {
+            return 1;
+        }
+        return 0;
+    }
+
+    private booksUrl(by: string, id: string): string | undefined {
         switch(by.toLowerCase())
         {
             case 'genres':
-                return 'http://books.toadstool.online/api/v1/books/by_genre/' + id;
+                return Endpoints.getGenresBooks(id);
             case 'authors':
-                return 'http://books.toadstool.online/api/v1/books/by_author/' + id;
+                return Endpoints.getAuthorsBooks(id);
             default:
-                return null;
+                return undefined;
         }
     }
 
@@ -100,7 +103,7 @@ class BooksList extends Component<any, State> {
         return (
             <React.Fragment>
             {
-                books.map(book => <BookCard book={book} />)
+                books.map(book => <BookCard book={book} key={book.id} />)
             }
             </React.Fragment>
         );
