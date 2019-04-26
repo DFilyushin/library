@@ -103,7 +103,7 @@ class BooksList extends Component<any, State> {
         return (
             <React.Fragment>
             {
-                books.map(book => <BookCard book={book} key={book.id} />)
+                books.map(book => <BookCard book={book} preview={true} key={book.id} />)
             }
             </React.Fragment>
         );

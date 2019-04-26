@@ -6,6 +6,7 @@ import { Tabs, Tab, Theme, withStyles, Toolbar } from '@material-ui/core';
 import Authors from './components/Authors';
 import BooksList from './components/BooksList';
 import Books from './components/Books';
+import BookPage from './components/BookPage';
 
 interface State {
 }
@@ -64,7 +65,8 @@ class App extends Component<any, State> {
                 <Route exact path="/genres" component={Genres} />
                 <Route exact path="/books" component={Books} />
                 <Route path="/genres/:genre" component={BooksList} />
-                <Route path="/authors/:author" component={BooksList} />
+                <Route path="/authors/:authorId" component={BooksList} />
+                <Route path="/books/:bookId" component={BookPage} />
             </React.Fragment>
         );
     }

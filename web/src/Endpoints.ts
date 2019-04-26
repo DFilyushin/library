@@ -30,6 +30,13 @@ class Endpoints {
     }
 
     /**
+     * Get book by ID
+     */
+    public static getBooksById(bookId: string) {
+        return `${Endpoints.API_URL}/books/${bookId}`;
+    }
+
+    /**
      * Find books by piece of name. Using regexp, case-insensitive search
      */
     public static getBooksByName(text: string, limit: number, skip: number) {

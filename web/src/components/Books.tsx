@@ -94,7 +94,7 @@ class Books extends Component<any, State> {
                 {books.length > 0 &&
                     <React.Fragment>
                         {
-                            books.map(book => <BookCard book={book}/>)
+                            books.map(book => <BookCard book={book} preview={true} key={book.id}/>)
                         }
                     </React.Fragment>
                 }
