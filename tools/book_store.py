@@ -12,16 +12,33 @@ class BookStore(object):
         self.zip = dict()
         self.tmp_path = tmp
         self.books_path = library_path
+        self.regexps = [
+            {'name': 'isbn', 'regxp': r'<isbn>(\S*)</isbn>'},
+            {'name': 'year', 'regxp': r'<year>(\S*)</year>'},
+            {'name': 'city', 'regxp': r'<city>([\s\S]*)</city>'},
+            {'name': 'annotation', 'regxp': r'<annotation>([\s\S]*)</annotation>'},
+            {'name': 'book-name', 'regxp': r'<book-name>([\s\S]*)</book-name>'}
+        ]
+        self.binary_regexps = [
+            r'<binary\s+content-type=\"([^\"]+)\"\s+id=\"{}\.{}\"[^>]*>([.\s\S]*)</binary>',
+            r'<binary\s+id=\"{}\.{}\"\s+content-type=\"([^\"]+)\">([^\"]*)</binary>'
+        ]
+        self.fb2_info_keys = ['coverType', 'cover', 'year', 'city', 'isbn', 'annotation', 'publisher', 'name']
 
     def check_item_exist(self, zip_file: str, item: str)->bool:
+        """
+        Check out file in archive
+        :param zip_file:
+        :param item:
+        :return:
+        """
         zip_path = os.path.join(self.books_path, zip_file)
         try:
-            zip = self.zip[zip_file]
+            zip_obj = self.zip[zip_file]
         except KeyError:
-            zip = ZipFile(zip_path)
-            self.zip[zip_file] = zip
-        result = item in zip.namelist()
-        return result
+            zip_obj = ZipFile(zip_path)
+            self.zip[zip_file] = zip_obj
+        return item in zip_obj.namelist()
 
     def get_zip_by_bookid(self, bookid: str)->str:
         """
@@ -51,17 +68,9 @@ class BookStore(object):
         :param bookid: id of file in archive
         :return: dict {type: mimetype, data - string decoded in base64}
         """
-        fb_info = {
-            'coverType': '',
-            'cover': '',
-            'description': '',
-            'year': '',
-            'city': '',
-            'isbn': '',
-            'annotation': '',
-            'publisher': '',
-            'name': ''
-        }
+        fb_info = dict()
+        for key in self.fb2_info_keys:
+            fb_info[key] = ''
         mem = self._extract_book_to_memory(bookid)
         start_eol = mem.find(b'\x0D')
         norm_line = mem[:start_eol].decode('IBM437')  # Default code page
@@ -77,33 +86,21 @@ class BookStore(object):
         if image_file_with_tag[0] != '#':
             return fb_info
         image_file = image_file_with_tag[1:]
-        r1 = image_file.split('.')
-        regexp_cover = r'<binary\s+content-type=\"([^\"]+)\"\s+id=\"{}\.{}\"[^>]*>([.\s\S]*)</binary>'.format(r1[0], r1[1])
-        find = re.findall( regexp_cover, book_xml, re.IGNORECASE)
-        if find:
-            fb_info['coverType'] = find[0][0]
-            fb_info['cover'] = find[0][1]
+        file_name, file_ext = image_file.split('.')
 
+        for item in self.binary_regexps:
+            find = re.findall(item.format(file_name, file_ext), book_xml, re.IGNORECASE)
+            if find:
+                fb_info['coverType'] = find[0][0]
+                fb_info['cover'] = find[0][1]
         regexp_descr = r'<description>([.\s\S]*?)</description>'
         find = re.findall(regexp_descr, book_xml)
         if find:
             description = find[0]
-            fb_info['description'] = description
-            isbn = re.findall(r'<isbn>(\S*)</isbn>', description)
-            if isbn:
-                fb_info['isbn'] = isbn
-            year = re.findall(r'<year>(\S*)</year>', description)
-            if year:
-                fb_info['year'] = year
-            city = re.findall(r'<city>([\s\S]*)</city>', description)
-            if city:
-                fb_info['city'] = city
-            annotation = re.findall('<annotation>([\s\S]*)</annotation>', description)
-            if annotation:
-                fb_info['annotation'] = annotation
-            book_name = re.findall('<book-name>([\s\S]*)</book-name>', description)
-            if book_name:
-                fb_info['name'] = book_name
+            for item in self.regexps:
+                find_value = re.findall(item['regxp'], description)
+                if find_value:
+                    fb_info[item['name']] = find_value
         return fb_info
 
     def _extract_book_to_memory(self, bookid: str)->bytes:
@@ -118,11 +115,11 @@ class BookStore(object):
         if not zip_name:
             return None
         try:
-            zip = self.zip[zip_name]
+            zip_obj = self.zip[zip_name]
         except KeyError:
-            zip = ZipFile(zip_path)
-            self.zip[zip_name] = zip
-        return zip.read(fb_item)
+            zip_obj = ZipFile(zip_path)
+            self.zip[zip_name] = zip_obj
+        return zip_obj.read(fb_item)
 
     def extract_books(self, booksid):
         """
@@ -133,10 +130,10 @@ class BookStore(object):
         zip_list = [self.extract_book(book) for book in booksid]
         tmp_file = str(uuid.uuid1())  # name of zip archive
         tmp_path = os.path.join(self.tmp_path, tmp_file)
-        zip = ZipFile(tmp_path, 'w', ZIP_DEFLATED)
+        zip_obj = ZipFile(tmp_path, 'w', ZIP_DEFLATED)
         for item in zip_list:
-            zip.write(item, os.path.basename(item))
-        zip.close()
+            zip_obj.write(item, os.path.basename(item))
+            zip_obj.close()
         return tmp_path
 
     def extract_book(self, bookid: str, zipped: bool = False)->str:
@@ -152,11 +149,11 @@ class BookStore(object):
         if not zip_name:
             return ''
         try:
-            zip = self.zip[zip_name]
+            zip_obj = self.zip[zip_name]
         except KeyError:
-            zip = ZipFile(zip_path)
-            self.zip[zip_name] = zip
-        target_file = zip.extract(fb_item, self.tmp_path)
+            zip_obj = ZipFile(zip_path)
+            self.zip[zip_name] = zip_obj
+        target_file = zip_obj.extract(fb_item, self.tmp_path)
         if zipped:
             zip_target_file = '{}.zip'.format(bookid)
             zip_full_path = os.path.join(self.tmp_path, zip_target_file)
