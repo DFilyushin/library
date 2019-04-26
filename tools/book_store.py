@@ -17,13 +17,14 @@ class BookStore(object):
             {'name': 'year', 'regxp': r'<year>(\S*)</year>'},
             {'name': 'city', 'regxp': r'<city>([\s\S]*)</city>'},
             {'name': 'annotation', 'regxp': r'<annotation>([\s\S]*)</annotation>'},
-            {'name': 'book-name', 'regxp': r'<book-name>([\s\S]*)</book-name>'}
+            {'name': 'name', 'regxp': r'<book-name>([\s\S]*)</book-name>'},
+            {'name': 'publisher', 'regxp': r'<publisher>([\s\S]*)</publisher>'}
         ]
         self.binary_regexps = [
             r'<binary\s+content-type=\"([^\"]+)\"\s+id=\"{}\.{}\"[^>]*>([.\s\S]*)</binary>',
             r'<binary\s+id=\"{}\.{}\"\s+content-type=\"([^\"]+)\">([^\"]*)</binary>'
         ]
-        self.fb2_info_keys = ['coverType', 'cover', 'year', 'city', 'isbn', 'annotation', 'publisher', 'name']
+        self.fb2_info_keys = ['coverType', 'cover', 'year', 'city', 'isbn', 'annotation', 'publisher', 'name', 'publisher']
 
     def check_item_exist(self, zip_file: str, item: str)->bool:
         """
