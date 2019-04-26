@@ -68,9 +68,7 @@ class BookStore(object):
         :param bookid: id of file in archive
         :return: dict {type: mimetype, data - string decoded in base64}
         """
-        fb_info = dict()
-        for key in self.fb2_info_keys:
-            fb_info[key] = ''
+        fb_info = dict.fromkeys(self.fb2_info_keys)
         mem = self._extract_book_to_memory(bookid)
         start_eol = mem.find(b'\x0D')
         norm_line = mem[:start_eol].decode('IBM437')  # Default code page
@@ -100,7 +98,7 @@ class BookStore(object):
             for item in self.regexps:
                 find_value = re.findall(item['regxp'], description)
                 if find_value:
-                    fb_info[item['name']] = find_value
+                    fb_info[item['name']] = find_value[0]
         return fb_info
 
     def _extract_book_to_memory(self, bookid: str)->bytes:
