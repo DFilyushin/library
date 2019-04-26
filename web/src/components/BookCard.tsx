@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import { Card, CardContent, Typography, Link, CardActions, Button, withStyles } from "@material-ui/core";
 import Book from "../models/Book";
+import Endpoints from "../Endpoints";
+import FB2Info from "../models/FB2Info";
 
 interface Prop {
     classes: any;
@@ -8,7 +10,7 @@ interface Prop {
 }
 
 interface State {
-
+    info: FB2Info;
 }
 
 const styles = {
@@ -24,10 +26,39 @@ class BookCard extends Component<Prop, State> {
 
     constructor(props: any) {
         super(props);
+        this.state = {
+            info: {
+                city: '',
+                publisher: '',
+                year: '',
+                isbn: ''
+            }
+        }
+    }
+
+    componentDidMount() {
+        if (this.props.book) {
+            const url = Endpoints.getBooksFB2Info(this.props.book.id);
+            fetch(url)
+                .then(results => {
+                    return results.json()
+                })
+                .then((data: Array<FB2Info>) => {
+                    this.setState({
+                        info: data[0]
+                    })
+                })
+                .catch(() => {
+                    this.setState({
+                        info: {}
+                    });
+                });
+        }
     }
 
     render() {
         const { classes, book } = this.props;
+        const { info } = this.state;
         return (
             <Card className={classes.card} key={book.id}>
                 <CardContent>
@@ -35,6 +66,8 @@ class BookCard extends Component<Prop, State> {
                         {book.name}
                     </Typography>
                     {book.series && <Typography variant="subtitle1" color="textSecondary">{book.series}{Number(book.sernum) > 0 && ': ' + book.sernum}</Typography>}
+                    {info && <Typography variant="subtitle1" color="textSecondary">{`${info.city}, ${info.publisher}, ${info.year}`}</Typography>}
+                    {info && info.isbn && <Typography variant="caption">{`ISBN ${info.isbn}`}</Typography>}
                     {
                         book.authors.map((author, index) => {
                             let name = '';
@@ -50,7 +83,7 @@ class BookCard extends Component<Prop, State> {
 
                             const link = <Link variant="subtitle2" href={'/#/authors/' + author._id} key={author._id}>{name}</Link>;
                             return index === 0 ? link :
-                                <React.Fragment key={author.id}>
+                                <React.Fragment key={author._id}>
                                     {', '}
                                     {link}
                                 </React.Fragment>;
@@ -59,7 +92,7 @@ class BookCard extends Component<Prop, State> {
                     <Typography variant="caption">{book.lang}</Typography>
                 </CardContent>
                 <CardActions>
-                    <Button href={'http://books.toadstool.online/api/v1/books/' + book.id + '/content'}>Скачать</Button>
+                    <Button href={Endpoints.getBooksContent(book.id)}>Скачать</Button>
                 </CardActions>
             </Card>
         );

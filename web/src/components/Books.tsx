@@ -2,13 +2,14 @@ import React, { Component } from 'react';
 import Book from '../models/Book';
 import { InputBase, Theme, withStyles } from '@material-ui/core';
 import BookCard from './BookCard';
+import Endpoints from '../Endpoints';
 
 interface State {
     searchText: string;
     books: Book[];
 }
 
-const styles = ({ palette, breakpoints, spacing, transitions } : Theme) => ({
+const styles = ({ palette, spacing } : Theme) => ({
     root: {
       width: '100%',
       maxWidth: 360,
@@ -24,14 +25,7 @@ const styles = ({ palette, breakpoints, spacing, transitions } : Theme) => ({
       paddingRight: spacing.unit,
       paddingBottom: spacing.unit,
       paddingLeft: spacing.unit,
-      transition: transitions.create('width'),
       width: '100%',
-      [breakpoints.up('sm')]: {
-        width: 120,
-        '&:focus': {
-          width: 200,
-        },
-      },
     },
   });
 
@@ -65,7 +59,7 @@ class Books extends Component<any, State> {
         const searchByBook = event.target.value;
 
         if (searchByBook) {
-            fetch('http://books.toadstool.online/api/v1/books/by_name/' + searchByBook + '?limit=15')
+            fetch(Endpoints.getBooksByName(searchByBook, 15, 0))
                 .then(results => {
                     return results.json();
                 })
