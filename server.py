@@ -1,4 +1,5 @@
 import os.path
+import re
 import functools
 import flask
 import flask_cors
@@ -7,8 +8,10 @@ from flask import send_from_directory
 from storage.author import AuthorNotFound
 from storage.language import LanguageNotFound
 from storage.stat import Stat
+from storage.user import User, UserNotFound, UserExists
 from wiring import Wiring
 from readlib import get_fb_content, get_archive_file
+
 
 env = os.environ.get("FLASK_ENV", "dev")
 print("Starting application in {} mode".format(env))
@@ -64,6 +67,33 @@ class HabrAppDemo(flask.Flask):
         self.route("/api/v1/languages/<languageId>/books")(self.get_books_by_language)
         self.route("/api/v1/languages")(self.get_languages)
         self.route("/api/v1/languages/<languageId>")(self.get_language)
+
+        # users api
+        self.route("/api/v1/users", methods=['POST'])(self.create_user)
+        self.route("/api/v1/users/<login>/books/<bookid>/starred", methods=['PUT', 'DELETE'])(self.starred_book)
+        self.route("/api/v1/users/<login>", methods=['GET', 'DELETE'])(self.check_user_exists)
+
+    def create_user(self):
+        login = request.args.get('login' ,default=None, type=str)
+        password = request.args.get('password', default=None, type=str)
+        find = re.findall(r'^[a-zA-Z](_(?!(\.|_))|\.(?!(_|\.))|[a-zA-Z0-9]){6,18}[a-zA-Z0-9]$', login)
+        if not find:
+            flask.abort(500)
+        user = User(login=login, password=password)
+        try:
+            result = self.wiring.users.create(user)
+        except UserExists:
+            flask.abort(400)
+        resp = flask.jsonify(success=True)
+        resp.status_code = 201
+        return resp
+
+
+    def starred_book(self, login, bookid):
+        pass
+
+    def check_user_exists(self, login):
+        pass
 
     def get_statistic(self):
         result = dict()

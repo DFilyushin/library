@@ -5,7 +5,7 @@ from pymongo.collection import Collection
 from pymongo.database import Database
 from pymongo import ASCENDING
 from pymongo.errors import DuplicateKeyError
-from storage.user import User, UserDAO, UserNotFound
+from storage.user import User, UserDAO, UserNotFound, UserExists
 
 
 class MongoUserDAO(UserDAO):
@@ -32,7 +32,12 @@ class MongoUserDAO(UserDAO):
         return result
 
     def create(self, user: User) -> User:
-        pass
+        try:
+            one_user = self.collection.insert_one(self.to_bson(user))
+        except DuplicateKeyError:
+            raise UserExists
+        user.id = str(one_user.inserted_id)
+        return user
 
     def update(self, user: User) -> User:
         pass

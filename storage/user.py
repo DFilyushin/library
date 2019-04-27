@@ -6,10 +6,12 @@ class User(object):
 
     def __init__(self,
                  id: str = None,
-                 login: str = None
+                 login: str = None,
+                 password: str = None
                  ):
         self.id = id
         self.login = login
+        self.password = password
 
 
 class UserDAO(object, metaclass=abc.ABCMeta):
@@ -36,4 +38,8 @@ class UserDAO(object, metaclass=abc.ABCMeta):
 
 
 class UserNotFound(Exception):
+    pass
+
+
+class UserExists(Exception):
     pass
