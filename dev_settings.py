@@ -8,6 +8,12 @@ LIB_INDEXES = r'D:/librusec/index'
 LIB_ARCHIVE = r'c:/librusec'
 TMP_DIR = r'c:/temp'
 
+# default limits for rows
+DEFAULT_LIMITS = 20
+
+# default skip
+DEFAULT_SKIP_RECORD = 0
+
 # mongo settings
 MONGO_HOST = "localhost"
 MONGO_PORT = 27017
