@@ -1,6 +1,7 @@
 import os.path
 import re
 import functools
+import json
 import flask
 import flask_cors
 from flask import request
@@ -11,7 +12,7 @@ from storage.stat import Stat
 from storage.user import User, UserNotFound, UserExists
 from wiring import Wiring
 from readlib import get_fb_content, get_archive_file
-
+from app_utils import row2dict, dataset2dict
 
 env = os.environ.get("FLASK_ENV", "dev")
 print("Starting application in {} mode".format(env))
@@ -26,7 +27,7 @@ def reg_stat(method):
     return wrapper
 
 
-class HabrAppDemo(flask.Flask):
+class LibraryApp(flask.Flask):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -35,7 +36,6 @@ class HabrAppDemo(flask.Flask):
 
         self.wiring = Wiring(env)
 
-        self.route("/ci", methods=['POST'])(self.cintegra)
         self.route("/", defaults={'path': 'index.html'})(self.index)
         self.route("/<path:path>")(self.index)
         self.route("/static/js/<path:path>")(self.static_files)
@@ -73,6 +73,12 @@ class HabrAppDemo(flask.Flask):
         self.route("/api/v1/users/<login>/books/<bookid>/starred", methods=['PUT', 'DELETE'])(self.starred_book)
         self.route("/api/v1/users/<login>", methods=['GET', 'DELETE'])(self.check_user_exists)
 
+    def index(self, path):
+        return send_from_directory('web/build', path)
+
+    def static_files(self, path):
+        return send_from_directory('web/build/static/js', path)
+
     def create_user(self):
         login = request.args.get('login' ,default=None, type=str)
         password = request.args.get('password', default=None, type=str)
@@ -88,7 +94,6 @@ class HabrAppDemo(flask.Flask):
         resp.status_code = 201
         return resp
 
-
     def starred_book(self, login, bookid):
         pass
 
@@ -96,11 +101,11 @@ class HabrAppDemo(flask.Flask):
         pass
 
     def get_statistic(self):
-        result = dict()
-        result['users'] = 0
-        result['books'] = 0
-        result['rpd'] = 0
-        return flask.jsonify(result)
+        stats = dict()
+        stats['users'] = 0
+        stats['books'] = 0
+        stats['rpd'] = 0
+        return flask.jsonify(stats)
 
     def get_all_authors(self):
         """
@@ -110,7 +115,7 @@ class HabrAppDemo(flask.Flask):
         limit = int(request.args.get('limit', self.wiring.settings.DEFAULT_LIMITS, int))
         skip = int(request.args.get('skip', self.wiring.settings.DEFAULT_SKIP_RECORD, int))
         dataset = self.wiring.author_dao.get_all(limit, skip)
-        result = [self.row2dict(row) for row in dataset]
+        result = [row2dict(row) for row in dataset]
         if not result:
             return flask.abort(404)
         return flask.jsonify(result)
@@ -134,15 +139,17 @@ class HabrAppDemo(flask.Flask):
         if not books:
             flask.abort(404)
         zip_file = self.wiring.book_store.extract_books(books)
-        return flask.send_file(zip_file, mimetype='application/zip',
-                               attachment_filename='books.zip', as_attachment=True)
+        return flask.send_file(zip_file,
+                               mimetype='application/zip',
+                               attachment_filename='books.zip',
+                               as_attachment=True)
 
     @reg_stat
     def get_books_by_language(self, languageId):
         limit = request.args.get('limit', self.wiring.settings.DEFAULT_LIMITS, int)
         skip = request.args.get('skip', self.wiring.settings.DEFAULT_SKIP_RECORD, int)
         dataset = self.wiring.book_dao.books_by_language(languageId, limit=limit, skip=skip)
-        result = [self.row2dict(row) for row in dataset]
+        result = [row2dict(row) for row in dataset]
         return flask.jsonify(result)
 
     @reg_stat
@@ -158,66 +165,7 @@ class HabrAppDemo(flask.Flask):
             return flask.abort(404)
         except Exception as e:
             return flask.abort(400)
-        return flask.jsonify(self.row2dict(dataset))
-
-    def exp_dict(self, item):
-        out = dict()
-        for key, value in item.items():
-            if type(value) == dict:
-                out[key] = self.exp_dict(value)
-            elif type(value) == int:
-                out[key] = int(value)
-            else:
-                out[key] = str(value)
-        return out
-
-    def row2dict(self, row):
-        d = dict()
-        for column in row.__dict__:
-            attr = getattr(row, column)
-            if type(attr) == list:
-                in_list = []
-                for item in attr:
-                    if type(item) == dict:
-                        in_record = self.exp_dict(item)
-                        in_list.append(in_record)
-                    else:
-                        in_list.append(str(item))
-
-                d[column] = in_list
-            elif type(attr) == dict:
-                d[column] = dict()
-                d[column] = self.exp_dict(attr)
-            else:
-                attr_item = getattr(row, column)
-                if type(attr_item) == int:
-                    d[column] = int(getattr(row, column))
-                else:
-                    d[column] = str(getattr(row, column))
-        return d
-
-    def index(self, path):
-        return send_from_directory('web/build', path)
-
-    def static_files(self, path):
-        return send_from_directory('web/build/static/js', path)
-
-    def static_file(self, path, subpath):
-        return send_from_directory(r'./web/build/', path+'/'+subpath)
-
-    def cintegra(self):
-        secret = request.headers.get('X-Hub-Signature', None)
-        if not secret:
-            return flask.abort(404)
-        json = request.json
-        print(json)
-        return '', 200
-
-    def dataset2dict(self, dataset):
-        result = []
-        for row in dataset:
-            result.append(self.row2dict(row))
-        return result
+        return flask.jsonify(row2dict(dataset))
 
     @reg_stat
     def get_all_genres(self):
@@ -225,11 +173,27 @@ class HabrAppDemo(flask.Flask):
         Get all genres
         :return: list of genres
         """
+        json_data = self.wiring.cache_db.get_value('genres')
+        if json_data:
+            response = app.response_class(
+                response=json_data,
+                status=200,
+                mimetype='application/json'
+            )
+            return response
+
         dataset = self.wiring.genre_dao.get_all()
-        genres = [self.row2dict(row) for row in dataset]
+        genres = [row2dict(row) for row in dataset]
         if not genres:
             return flask.abort(404)
-        return flask.jsonify(genres)
+        json_data = json.dumps(genres)
+        self.wiring.cache_db.set_value('genres', json_data)
+        response = app.response_class(
+            response=json_data,
+            status=200,
+            mimetype='application/json'
+        )
+        return response
 
     @reg_stat
     def get_author_by_id(self, authorid):
@@ -244,7 +208,7 @@ class HabrAppDemo(flask.Flask):
             return flask.abort(404)
         except Exception as err:
             return flask.abort(400)
-        return flask.jsonify(self.row2dict(dataset))
+        return flask.jsonify(row2dict(dataset))
 
     @reg_stat
     def get_authors_startwith(self, start_text_fullname):
@@ -256,7 +220,7 @@ class HabrAppDemo(flask.Flask):
         limit = request.args.get('limit', self.wiring.settings.DEFAULT_LIMITS, int)
         skip = request.args.get('skip', self.wiring.settings.DEFAULT_SKIP_RECORD, int)
         dataset = self.wiring.author_dao.get_by_start(start_text_fullname, limit=limit, skip=skip)
-        result = [self.row2dict(row) for row in dataset]
+        result = [row2dict(row) for row in dataset]
         if not result:
             return flask.abort(404)
         return flask.jsonify(result)
@@ -271,7 +235,7 @@ class HabrAppDemo(flask.Flask):
         dataset = self.wiring.book_dao.get_by_id(bookid)
         if not dataset:
             return flask.abort(404)
-        return flask.jsonify(self.row2dict(dataset))
+        return flask.jsonify(row2dict(dataset))
 
     @reg_stat
     def get_book_by_name(self, name):
@@ -281,7 +245,7 @@ class HabrAppDemo(flask.Flask):
         :return:
         """
         dataset = self.wiring.book_dao.get_by_name(name)
-        result = [self.row2dict(row) for row in dataset]
+        result = [row2dict(row) for row in dataset]
         if not result:
             return flask.abort(404)
         return flask.jsonify(result)
@@ -301,7 +265,7 @@ class HabrAppDemo(flask.Flask):
         f_skip = request.args.get('skip', self.wiring.settings.DEFAULT_SKIP_RECORD, int)
         dataset = self.wiring.book_dao.search_book(
             name=f_name, lang=f_lang, series=f_series, keyword=f_keyword, genre=f_genre, skip=f_skip, limit=f_limit)
-        result = [self.row2dict(row) for row in dataset]
+        result = [row2dict(row) for row in dataset]
         return flask.jsonify(result)
 
     @reg_stat
@@ -312,7 +276,7 @@ class HabrAppDemo(flask.Flask):
         :return:
         """
         dataset = self.wiring.book_dao.books_by_genres(name)
-        result = [self.row2dict(row) for row in dataset]
+        result = [row2dict(row) for row in dataset]
         return flask.jsonify(result)
 
     @reg_stat
@@ -323,7 +287,7 @@ class HabrAppDemo(flask.Flask):
         :return:
         """
         dataset = self.wiring.book_dao.get_by_author(author_id)
-        data = self.dataset2dict(dataset)
+        data = dataset2dict(dataset)
         if not data:
             return flask.abort(404)
         return flask.jsonify(data)
@@ -339,12 +303,17 @@ class HabrAppDemo(flask.Flask):
         dataset = self.wiring.book_dao.get_by_id(bookid)
         if not dataset:
             return flask.abort(404)
-        zip_file = self.wiring.book_store.extract_books([int(dataset.filename)])  # get_archive_file(self.wiring.settings.LIB_ARCHIVE, int(dataset.filename))
+        output_file = '{}.fb2'.format(dataset.filename)
+        zip_file = self.wiring.book_store.extract_books([int(dataset.filename)])
         zip = os.path.join(self.wiring.settings.LIB_ARCHIVE, zip_file)
         unzipped = get_fb_content(zip, dataset.filename+'.fb2', self.wiring.settings.TMP_DIR)
         if not unzipped:
             return flask.abort(404)
-        return flask.send_file(unzipped, mimetype='application/octet-stream', attachment_filename=dataset.filename+'.fb2', as_attachment=True)
+        return flask.send_file(
+            unzipped,
+            mimetype='application/octet-stream',
+            attachment_filename=output_file,
+            as_attachment=True)
 
     @reg_stat
     def get_library_info(self):
@@ -352,6 +321,14 @@ class HabrAppDemo(flask.Flask):
         Get library info
         :return:
         """
+        json_data = self.wiring.cache_db.get_value('info')
+        if json_data:
+            response = app.response_class(
+                response=json_data,
+                status=200,
+                mimetype='application/json'
+            )
+            return response
         authors_count = self.wiring.author_dao.get_count_authors()
         books_count = self.wiring.book_dao.get_count_books()
         version = self.wiring.library_dao.get_version()
@@ -363,12 +340,20 @@ class HabrAppDemo(flask.Flask):
             "booksCount": books_count,
             "usersCount": user_count,
         }
-        return flask.jsonify(library_info)
+        json_data = json.dumps(library_info)
+        self.wiring.cache_db.set_value('info', json_data)
+        response = app.response_class(
+            response=json_data,
+            status=200,
+            mimetype='application/json'
+        )
+        return response
 
     def get_author_genres(self, id):
         genres = self.wiring.book_dao.get_genres_by_author(id)
         list_genres = [row['genres'] for row in genres]
         return flask.jsonify(list_genres)
 
-app = HabrAppDemo("library_librusec")
+
+app = LibraryApp("library_librusec")
 app.config.from_object("{}_settings".format(env))

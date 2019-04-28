@@ -15,6 +15,7 @@ from storage.language_impl import MongoLanguageDAO
 from tools.book_store import BookStore
 from storage.stat_impl import MongoStatDAO
 from storage.user_impl import MongoUserDAO
+from api_cache import AppCache
 
 
 class Wiring(object):
@@ -28,6 +29,12 @@ class Wiring(object):
             'test': test_settings
         }[env]
 
+        self.cache_db = AppCache(
+            self.settings.REDIS_HOST,
+            self.settings.REDIS_PORT,
+            self.settings.REDIS_CACHE_DB,
+            self.settings.CACHE_DEFAULT_TIMEOUT)
+
         self.mongo_client = MongoClient(
             host=self.settings.MONGO_HOST,
             port=self.settings.MONGO_PORT)
@@ -40,10 +47,3 @@ class Wiring(object):
         self.book_store = BookStore(self.settings.LIB_ARCHIVE, self.settings.TMP_DIR, self.settings.THUMBNAIL_SIZE)
         self.stat = MongoStatDAO(self.mongo_database)
         self.users = MongoUserDAO(self.mongo_database)
-        self.redis = redis.StrictRedis(
-            host=self.settings.REDIS_HOST,
-            port=self.settings.REDIS_PORT,
-            db=self.settings.REDIS_DB)
-        self.task_queue = rq.Queue(
-            name=self.settings.TASK_QUEUE_NAME,
-            connection=self.redis)
