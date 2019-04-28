@@ -2,16 +2,18 @@ import os.path
 import re
 import functools
 import json
-import flask
 import flask_cors
 from flask import request
 from flask import send_from_directory
+from flask import Flask
+from flask import abort
+from flask import jsonify
+from flask import send_file
 from storage.author import AuthorNotFound
 from storage.language import LanguageNotFound
 from storage.stat import Stat
-from storage.user import User, UserNotFound, UserExists
+from storage.user import User, UserExists
 from wiring import Wiring
-from readlib import get_fb_content, get_archive_file
 from app_utils import row2dict, dataset2dict
 
 env = os.environ.get("FLASK_ENV", "dev")
@@ -21,13 +23,13 @@ print("Starting application in {} mode".format(env))
 def reg_stat(method):
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
-        stat = Stat(ip=flask.request.remote_addr, resource=flask.request.path)
+        stat = Stat(ip=request.remote_addr, resource=request.path)
         self.wiring.stat.create(stat)
         return method(self, *args, **kwargs)
     return wrapper
 
 
-class LibraryApp(flask.Flask):
+class LibraryApp(Flask):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -35,6 +37,7 @@ class LibraryApp(flask.Flask):
         flask_cors.CORS(self)
 
         self.wiring = Wiring(env)
+        self.formats = ['zip', 'fb2']
 
         self.route("/", defaults={'path': 'index.html'})(self.index)
         self.route("/<path:path>")(self.index)
@@ -80,17 +83,17 @@ class LibraryApp(flask.Flask):
         return send_from_directory('web/build/static/js', path)
 
     def create_user(self):
-        login = request.args.get('login' ,default=None, type=str)
+        login = request.args.get('login', default=None, type=str)
         password = request.args.get('password', default=None, type=str)
         find = re.findall(r'^[a-zA-Z](_(?!(\.|_))|\.(?!(_|\.))|[a-zA-Z0-9]){6,18}[a-zA-Z0-9]$', login)
         if not find:
-            flask.abort(500)
+            abort(500)
         user = User(login=login, password=password)
         try:
             result = self.wiring.users.create(user)
         except UserExists:
-            flask.abort(400)
-        resp = flask.jsonify(success=True)
+            abort(400)
+        resp = jsonify(success=True)
         resp.status_code = 201
         return resp
 
@@ -105,7 +108,7 @@ class LibraryApp(flask.Flask):
         stats['users'] = 0
         stats['books'] = 0
         stats['rpd'] = 0
-        return flask.jsonify(stats)
+        return jsonify(stats)
 
     def get_all_authors(self):
         """
@@ -117,16 +120,16 @@ class LibraryApp(flask.Flask):
         dataset = self.wiring.author_dao.get_all(limit, skip)
         result = [row2dict(row) for row in dataset]
         if not result:
-            return flask.abort(404)
-        return flask.jsonify(result)
+            return abort(404)
+        return jsonify(result)
 
     @reg_stat
     def get_fb2info(self, booksid: str):
         book = self.wiring.book_dao.get_by_id(booksid)
         if not book:
-            flask.abort(404)
+            abort(404)
         d = self.wiring.book_store.get_book_info(book.filename)
-        return flask.jsonify(d)
+        return jsonify(d)
 
     @reg_stat
     def download_books(self, booksids: str):
@@ -137,9 +140,9 @@ class LibraryApp(flask.Flask):
             if book:
                 books.append(book.filename)
         if not books:
-            flask.abort(404)
+            abort(404)
         zip_file = self.wiring.book_store.extract_books(books)
-        return flask.send_file(zip_file,
+        return send_file(zip_file,
                                mimetype='application/zip',
                                attachment_filename='books.zip',
                                as_attachment=True)
@@ -150,22 +153,22 @@ class LibraryApp(flask.Flask):
         skip = request.args.get('skip', self.wiring.settings.DEFAULT_SKIP_RECORD, int)
         dataset = self.wiring.book_dao.books_by_language(languageId, limit=limit, skip=skip)
         result = [row2dict(row) for row in dataset]
-        return flask.jsonify(result)
+        return jsonify(result)
 
     @reg_stat
     def get_languages(self):
         languages = self.wiring.book_dao.get_languages_by_books()
         list_genres = [row['lang'] for row in languages]
-        return flask.jsonify(list_genres)
+        return jsonify(list_genres)
 
     def get_language(self, languageId):
         try:
             dataset = self.wiring.language_dao.get_by_id(languageId)
         except LanguageNotFound:
-            return flask.abort(404)
+            return abort(404)
         except Exception as e:
-            return flask.abort(400)
-        return flask.jsonify(row2dict(dataset))
+            return abort(400)
+        return jsonify(row2dict(dataset))
 
     @reg_stat
     def get_all_genres(self):
@@ -185,7 +188,7 @@ class LibraryApp(flask.Flask):
         dataset = self.wiring.genre_dao.get_all()
         genres = [row2dict(row) for row in dataset]
         if not genres:
-            return flask.abort(404)
+            return abort(404)
         json_data = json.dumps(genres)
         self.wiring.cache_db.set_value('genres', json_data)
         response = app.response_class(
@@ -205,10 +208,10 @@ class LibraryApp(flask.Flask):
         try:
             dataset = self.wiring.author_dao.get_by_id(authorid)
         except AuthorNotFound:
-            return flask.abort(404)
+            return abort(404)
         except Exception as err:
-            return flask.abort(400)
-        return flask.jsonify(row2dict(dataset))
+            return abort(400)
+        return jsonify(row2dict(dataset))
 
     @reg_stat
     def get_authors_startwith(self, start_text_fullname):
@@ -222,8 +225,8 @@ class LibraryApp(flask.Flask):
         dataset = self.wiring.author_dao.get_by_start(start_text_fullname, limit=limit, skip=skip)
         result = [row2dict(row) for row in dataset]
         if not result:
-            return flask.abort(404)
-        return flask.jsonify(result)
+            return abort(404)
+        return jsonify(result)
 
     @reg_stat
     def get_book(self, bookid):
@@ -234,8 +237,8 @@ class LibraryApp(flask.Flask):
         """
         dataset = self.wiring.book_dao.get_by_id(bookid)
         if not dataset:
-            return flask.abort(404)
-        return flask.jsonify(row2dict(dataset))
+            return abort(404)
+        return jsonify(row2dict(dataset))
 
     @reg_stat
     def get_book_by_name(self, name):
@@ -247,8 +250,8 @@ class LibraryApp(flask.Flask):
         dataset = self.wiring.book_dao.get_by_name(name)
         result = [row2dict(row) for row in dataset]
         if not result:
-            return flask.abort(404)
-        return flask.jsonify(result)
+            return abort(404)
+        return jsonify(result)
 
     @reg_stat
     def get_book_by_search(self):
@@ -266,7 +269,7 @@ class LibraryApp(flask.Flask):
         dataset = self.wiring.book_dao.search_book(
             name=f_name, lang=f_lang, series=f_series, keyword=f_keyword, genre=f_genre, skip=f_skip, limit=f_limit)
         result = [row2dict(row) for row in dataset]
-        return flask.jsonify(result)
+        return jsonify(result)
 
     @reg_stat
     def get_book_by_genre(self, name):
@@ -277,7 +280,7 @@ class LibraryApp(flask.Flask):
         """
         dataset = self.wiring.book_dao.books_by_genres(name)
         result = [row2dict(row) for row in dataset]
-        return flask.jsonify(result)
+        return jsonify(result)
 
     @reg_stat
     def get_books_by_author(self, author_id):
@@ -289,8 +292,8 @@ class LibraryApp(flask.Flask):
         dataset = self.wiring.book_dao.get_by_author(author_id)
         data = dataset2dict(dataset)
         if not data:
-            return flask.abort(404)
-        return flask.jsonify(data)
+            return abort(404)
+        return jsonify(data)
 
     @reg_stat
     def get_book_content(self, bookid):
@@ -299,18 +302,18 @@ class LibraryApp(flask.Flask):
         :param bookid: Id of book
         :return:
         """
-        file_type = request.args.get('type', 'fb2')
+        file_type = request.args.get('type', 'fb2', str)
+        if file_type not in self.formats:
+            abort(400)
         dataset = self.wiring.book_dao.get_by_id(bookid)
         if not dataset:
-            return flask.abort(404)
-        output_file = '{}.fb2'.format(dataset.filename)
-        zip_file = self.wiring.book_store.extract_books([int(dataset.filename)])
-        zip = os.path.join(self.wiring.settings.LIB_ARCHIVE, zip_file)
-        unzipped = get_fb_content(zip, dataset.filename+'.fb2', self.wiring.settings.TMP_DIR)
-        if not unzipped:
-            return flask.abort(404)
-        return flask.send_file(
-            unzipped,
+            return abort(404)
+        output_file = '{}.{}'.format(dataset.filename, file_type)
+        full_path_to_file = self.wiring.book_store.extract_book(int(dataset.filename), file_type == 'zip')
+        if not full_path_to_file:
+            return abort(404)
+        return send_file(
+            full_path_to_file,
             mimetype='application/octet-stream',
             attachment_filename=output_file,
             as_attachment=True)
@@ -352,7 +355,7 @@ class LibraryApp(flask.Flask):
     def get_author_genres(self, id):
         genres = self.wiring.book_dao.get_genres_by_author(id)
         list_genres = [row['genres'] for row in genres]
-        return flask.jsonify(list_genres)
+        return jsonify(list_genres)
 
 
 app = LibraryApp("library_librusec")
