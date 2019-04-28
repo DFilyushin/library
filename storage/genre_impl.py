@@ -140,27 +140,21 @@ class MongoNewGenreDAO(NewGenreDAO):
                 {"$match": {'genres_main.parent': document['_id']}},
                 {"$group": {
                         "_id": {
-                            "genres_main᎐titles": "$genres_main.titles",
-                            "genres_main᎐_id": "$genres_main._id",
-                        },
-                        "COUNT(books᎐_id)": {
-                            "$sum": 1
+                            "genres_main_titles": "$genres_main.titles",
+                            "genres_main__id": "$genres_main._id",
                         }
                     }
                 },
                 {"$project": {
-                        "genres_main.id": "$_id.genres_main᎐_id",
-                        "genres_main.titles": "$_id.genres_main᎐titles",
-                        "count_books": "$COUNT(books᎐_id)",
+                        "genres_main.id": "$_id.genres_main__id",
+                        "genres_main.titles": "$_id.genres_main_titles",
                         "_id": 0
                     }
                 }
             ]
             for sub_document in self.collection.aggregate(sql):
                 sub_genres.append(sub_document)
-                counter += sub_document['count_books']
             document['sub_genres'] = [row['genres_main'] for row in sub_genres]
-            document['count_books'] = counter
             yield self.from_bson(document)
 
     def get_by_id(self, genre_id: str) -> NewGenre:
