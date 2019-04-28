@@ -1,15 +1,12 @@
 import os
-import redis
-import rq
 from pymongo import MongoClient
 from pymongo.database import Database
 import dev_settings
 import prod_settings
 import test_settings
-from storage.book import BookDAO
 from storage.book_impl import MongoBookDAO
 from storage.author_impl import MongoAuthorDAO
-from storage.genre_impl import MongoGenreDAO, MongoNewGenreDAO
+from storage.genre_impl import MongoGenreDAO
 from storage.version_impl import MongoVersionDAO
 from storage.language_impl import MongoLanguageDAO
 from tools.book_store import BookStore
@@ -41,7 +38,7 @@ class Wiring(object):
         self.mongo_database = self.mongo_client[self.settings.MONGO_DATABASE]
         self.book_dao = MongoBookDAO(self.mongo_database)
         self.author_dao = MongoAuthorDAO(self.mongo_database)
-        self.genre_dao = MongoNewGenreDAO(self.mongo_database)
+        self.genre_dao = MongoGenreDAO(self.mongo_database)
         self.library_dao = MongoVersionDAO(self.mongo_database)
         self.language_dao = MongoLanguageDAO(self.mongo_database)
         self.book_store = BookStore(self.settings.LIB_ARCHIVE, self.settings.TMP_DIR, self.settings.THUMBNAIL_SIZE)
