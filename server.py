@@ -1,4 +1,5 @@
 import os.path
+from datetime import datetime, timedelta
 import re
 import functools
 import json
@@ -15,6 +16,7 @@ from storage.stat import Stat
 from storage.user import User, UserExists
 from wiring import Wiring
 from app_utils import row2dict, dataset2dict
+from app_utils import get_periods
 
 env = os.environ.get("FLASK_ENV", "dev")
 print("Starting application in {} mode".format(env))
@@ -104,11 +106,50 @@ class LibraryApp(Flask):
         pass
 
     def get_statistic(self):
+        json_data = self.wiring.cache_db.get_value('stat')
+        if json_data:
+            response = app.response_class(
+                response=json_data,
+                status=200,
+                mimetype='application/json'
+            )
+            return response
+
+        periods = get_periods()
+        top_down_book_ids = self.wiring.stat.top_download_books(10)
+        top_view_book_ids = self.wiring.stat.top_viewed_books(10)
+
+        downloads = dict()
+        views = dict()
+        for item in periods:
+            downloads[item['name']] = self.wiring.stat.count_download(item['start'], item['end'])
+            views[item['name']] = self.wiring.stat.count_viewed(item['start'], item['end'])
+
+        top_download_books = []
+        top_viewed_books = []
+        for item in top_down_book_ids:
+            book = self.wiring.book_dao.get_by_id(item['book_id'])
+            if book:
+                top_download_books.append(row2dict(book))
+        for item in top_view_book_ids:
+            book = self.wiring.book_dao.get_by_id(item['book_id'])
+            if book:
+                top_viewed_books.append(row2dict(book))
+
         stats = dict()
         stats['users'] = 0
-        stats['books'] = 0
-        stats['rpd'] = 0
-        return jsonify(stats)
+        stats['downloads'] = downloads
+        stats['views'] = views
+        stats['top-download-books'] = top_download_books
+        stats['top-view-books'] = top_viewed_books
+        json_data = json.dumps(stats)
+        self.wiring.cache_db.set_value('stat', json_data)
+        response = app.response_class(
+            response=json_data,
+            status=200,
+            mimetype='application/json'
+        )
+        return response
 
     def get_all_authors(self):
         """
@@ -341,10 +382,10 @@ class LibraryApp(Flask):
             "version": version.version,
             "authorsCount": authors_count,
             "booksCount": books_count,
-            "usersCount": user_count,
+            "usersCount": user_count
         }
         json_data = json.dumps(library_info)
-        self.wiring.cache_db.set_value('info', json_data)
+        self.wiring.cache_db.set_value('info', json_data, 18000)  # one hour cache
         response = app.response_class(
             response=json_data,
             status=200,

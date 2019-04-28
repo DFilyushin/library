@@ -29,3 +29,19 @@ class StatDAO(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def stat_by_period(self, start: str, end: str) -> Iterable[Stat]:
         pass
+
+    @abc.abstractmethod
+    def top_download_books(self, limit: int)->Iterable[str]:
+        pass
+
+    @abc.abstractmethod
+    def top_viewed_books(self, limit: int)->Iterable[str]:
+        pass
+
+    @abc.abstractmethod
+    def count_download(self, start: datetime, end: datetime)->int:
+        pass
+
+    @abc.abstractmethod
+    def count_viewed(self, start: datetime, end: datetime)->int:
+        pass
