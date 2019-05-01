@@ -1,5 +1,9 @@
 from datetime import datetime
-import secrets
+import sys
+if sys.version_info[1] >= 6:
+    import secrets
+else:
+    from uuid import uuid4
 from storage.session import Session, SessionDAO, SessionNotFound
 from redis import StrictRedis
 import json
@@ -18,7 +22,10 @@ class RedisSessionDAO(SessionDAO):
         :param ip: user ip
         :return:
         """
-        session_id = secrets.token_hex()
+        if sys.version_info[1] >= 6:
+            session_id = str(uuid4())
+        else:
+            session_id = str(uuid4())
         current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         session = Session(session_id, login, ip, self.default_ttl, current_time)
         if self.redis.set(name=session_id, value=json.dumps(session.__dict__)):
