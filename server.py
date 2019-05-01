@@ -10,22 +10,38 @@ from flask import Flask
 from flask import abort
 from flask import jsonify
 from flask import send_file
+from flask import make_response
 from storage.author import AuthorNotFound
 from storage.language import LanguageNotFound
 from storage.stat import Stat
-from storage.user import User, UserExists
+from storage.user import User, UserExists, UserNotFound
+from storage.session import SessionNotFound
+from storage.starred_book import StarredBook, StarExists
 from wiring import Wiring
 from app_utils import row2dict, dataset2dict
 from app_utils import get_periods
+
+SESSION_ID = 'X-User-Session-ID'
+
 
 env = os.environ.get("FLASK_ENV", "dev")
 print("Starting application in {} mode".format(env))
 
 
 def reg_stat(method):
+    """
+    Add statictic for action
+    :param method:
+    :return:
+    """
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
-        stat = Stat(ip=request.remote_addr, resource=request.path)
+        session_id = request.headers.get(SESSION_ID)
+        login = ''
+        if session_id:
+            session = self.wiring.sessions.get_session(session_id)
+            login = session.login
+        stat = Stat(ip=request.remote_addr, resource=request.path, login=login)
         self.wiring.stat.create(stat)
         return method(self, *args, **kwargs)
     return wrapper
@@ -75,14 +91,81 @@ class LibraryApp(Flask):
 
         # users api
         self.route("/api/v1/users", methods=['POST'])(self.create_user)
-        self.route("/api/v1/users/<login>/books/<bookid>/starred", methods=['PUT', 'DELETE'])(self.starred_book)
-        self.route("/api/v1/users/<login>", methods=['GET', 'DELETE'])(self.check_user_exists)
+        self.route("/api/v1/auth", methods=['POST'])(self.auth)
+        self.route("/api/v1/logout", methods=['POST'])(self.logout)
+        self.route("/api/v1/users/<login>", methods=['GET', 'DELETE'])(self.user_ep)
+        self.route("/api/v1/users/books/<bookid>/starred", methods=['PUT', 'DELETE'])(self.starred)
+
+    @staticmethod
+    def get_client_ip():
+        return request.environ.get('REMOTE_ADDR', request.remote_addr)
 
     def index(self, path):
         return send_from_directory('web/build', path)
 
     def static_files(self, path):
         return send_from_directory('web/build/static/js', path)
+
+    def auth(self):
+        login = request.args.get('login', default=None, type=str)
+        password = request.args.get('password', default=None, type=str)
+        try:
+            user = self.wiring.users.get_by_login(login)
+        except UserNotFound:
+            abort(404)
+        if user.password != password:
+            abort(401)
+        ip = self.get_client_ip()
+        # create session
+        session = self.wiring.sessions.create(login, ip)
+        response = app.response_class(
+            response=json.dumps({'session': session.session_id}),
+            status=201,
+            mimetype='application/json'
+        )
+        return response
+
+    def logout(self):
+        session_id = request.headers.get(SESSION_ID)
+        try:
+            self.wiring.sessions.close(session_id)
+        except SessionNotFound:
+            abort(404)
+        response = app.response_class(
+            response=json.dumps({'status': 'ok'}),
+            status=201,
+            mimetype='application/json'
+        )
+        return response
+
+    def starred(self, bookid):
+        """
+        Starred and unstarred book for user
+        User information getting from session variable SESSION-ID
+        :param bookid:
+        :return:
+        """
+        session_id = request.headers.get(SESSION_ID)
+        if not session_id:
+            abort(403)
+        try:
+            session = self.wiring.sessions.get_session(session_id)
+        except SessionNotFound:
+            abort(403)
+        if request.method == 'PUT':
+            star = StarredBook(login=session.login, book_id=bookid)
+            try:
+                self.wiring.stars.create(star)
+            except StarExists:
+                abort(400)
+        elif request.method == 'DELETE':
+            self.wiring.stars.delete_by_star_pair(session.login, bookid)
+        response = app.response_class(
+            response=json.dumps({'status': 'ok'}),
+            status=201,
+            mimetype='application/json'
+        )
+        return response
 
     def create_user(self):
         login = request.args.get('login', default=None, type=str)
@@ -99,11 +182,25 @@ class LibraryApp(Flask):
         resp.status_code = 201
         return resp
 
-    def starred_book(self, login, bookid):
-        pass
+    def user_ep(self, login):
+        session_id = request.headers.get(SESSION_ID)
+        try:
+            session = self.wiring.sessions.get_session(session_id)
+        except SessionNotFound:
+            abort(400)
+        if session.login != login:
+            abort(404)
+        if request.method == 'GET':
+            # self.wiring.users.get_by_login()
+            starred_books = []
+            result = dict()
+            result['lastLogin'] = session.started
+            result['downloadCount'] = self.wiring.stat.downloads_by_login(login)
+            result['starredBooks'] = starred_books
+        elif request.method == 'DELETE':
+            if self.wiring.users.delete(login):
+                return make_response('', 204)
 
-    def check_user_exists(self, login):
-        pass
 
     def get_statistic(self):
         json_data = self.wiring.cache_db.get_value('stat')

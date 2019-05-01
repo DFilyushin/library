@@ -1,4 +1,5 @@
 import os
+import redis
 from pymongo import MongoClient
 from pymongo.database import Database
 import dev_settings
@@ -13,6 +14,8 @@ from tools.book_store import BookStore
 from storage.stat_impl import MongoStatDAO
 from storage.user_impl import MongoUserDAO
 from api_cache import AppCache
+from storage.session_impl import RedisSessionDAO
+from storage.starred_book_impl import MongoStarredBook
 
 
 class Wiring(object):
@@ -31,6 +34,11 @@ class Wiring(object):
             self.settings.REDIS_PORT,
             self.settings.REDIS_CACHE_DB,
             self.settings.CACHE_DEFAULT_TIMEOUT)
+        self.session_db = redis.StrictRedis(
+            self.settings.REDIS_HOST,
+            self.settings.REDIS_PORT,
+            self.settings.REDIS_SESSION_DB
+        )
 
         self.mongo_client = MongoClient(
             host=self.settings.MONGO_HOST,
@@ -44,3 +52,5 @@ class Wiring(object):
         self.book_store = BookStore(self.settings.LIB_ARCHIVE, self.settings.TMP_DIR, self.settings.THUMBNAIL_SIZE)
         self.stat = MongoStatDAO(self.mongo_database)
         self.users = MongoUserDAO(self.mongo_database)
+        self.sessions = RedisSessionDAO(self.session_db, self.settings.DEFAULT_SESSION_TTL)
+        self.stars = MongoStarredBook(self.mongo_database)
