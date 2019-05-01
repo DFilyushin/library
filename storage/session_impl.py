@@ -43,7 +43,9 @@ class RedisSessionDAO(SessionDAO):
         session = self.redis.get(session_id)
         if not session:
             return None
+        session.started = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         self.redis.expire(session_id, self.default_ttl)
+        self.redis.set(name=session_id, value=json.dumps(session.__dict__))
         session_de = json.loads(session)
         return Session(**session_de)
 
