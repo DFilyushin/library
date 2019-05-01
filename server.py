@@ -30,7 +30,7 @@ print("Starting application in {} mode".format(env))
 
 def reg_stat(method):
     """
-    Add statictic for action
+    Add statistic for action
     :param method:
     :return:
     """
@@ -76,12 +76,12 @@ class LibraryApp(Flask):
 
         # books api
         self.route("/api/v1/books/<bookid>")(self.get_book)
-        self.route("/api/v1/books/<bookid>/content")(self.get_book_content)
+        self.route("/api/v1/books/<bookid>/content")(self.download_book)
+        self.route("/api/v1/books/<booksids>/package")(self.download_books)
         self.route("/api/v1/books/by_author/<author_id>")(self.get_books_by_author)
         self.route("/api/v1/books/by_name/<name>")(self.get_book_by_name)
         self.route("/api/v1/books/by_genre/<name>")(self.get_book_by_genre)
         self.route("/api/v1/books/search")(self.get_book_by_search)
-        self.route("/api/v1/books/<booksids>/package")(self.download_books)
         self.route("/api/v1/books/<booksid>/fb2info")(self.get_fb2info)
 
         # language api
@@ -99,6 +99,15 @@ class LibraryApp(Flask):
     @staticmethod
     def get_client_ip():
         return request.environ.get('REMOTE_ADDR', request.remote_addr)
+
+    def check_session(self):
+        """
+        Check current session
+        :return:
+        """
+        session_id = request.headers.get(SESSION_ID, '', str)
+        session = self.wiring.sessions.get_session(session_id)
+        return session
 
     def index(self, path):
         return send_from_directory('web/build', path)
@@ -191,7 +200,6 @@ class LibraryApp(Flask):
         if session.login != login:
             abort(404)
         if request.method == 'GET':
-            # self.wiring.users.get_by_login()
             starred_books = []
             result = dict()
             result['lastLogin'] = session.started
@@ -271,6 +279,15 @@ class LibraryApp(Flask):
 
     @reg_stat
     def download_books(self, booksids: str):
+        """
+        Download book package
+        :param booksids: book list separated comma
+        :return: send zip-file
+        """
+        # check session
+        if not self.check_session():
+            return abort(403)
+
         ids = booksids.split(',')
         books = []
         for item in ids:
@@ -434,7 +451,7 @@ class LibraryApp(Flask):
         return jsonify(data)
 
     @reg_stat
-    def get_book_content(self, bookid):
+    def download_book(self, bookid):
         """
         Get book content
         :param bookid: Id of book

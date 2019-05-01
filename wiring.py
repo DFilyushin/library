@@ -13,6 +13,7 @@ from storage.language_impl import MongoLanguageDAO
 from tools.book_store import BookStore
 from storage.stat_impl import MongoStatDAO
 from storage.user_impl import MongoUserDAO
+from storage.group_impl import MongoGroupDAO
 from api_cache import AppCache
 from storage.session_impl import RedisSessionDAO
 from storage.starred_book_impl import MongoStarredBook
@@ -54,3 +55,4 @@ class Wiring(object):
         self.users = MongoUserDAO(self.mongo_database)
         self.sessions = RedisSessionDAO(self.session_db, self.settings.DEFAULT_SESSION_TTL)
         self.stars = MongoStarredBook(self.mongo_database)
+        self.groups = MongoGroupDAO(self.mongo_database)
