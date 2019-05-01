@@ -45,6 +45,24 @@ class MongoStatDAO(StatDAO):
     def stat_by_period(self, start: str, end: str) -> Iterable[Stat]:
         pass
 
+    def downloads_by_login(self, login: str)->int:
+        query = [
+            {"$match": {
+                "resource": {"$regex": "/books/[a-z0-9]*/content"},
+                "login": login
+            }
+            },
+            {"$group": {"_id": {}, "COUNT(*)": {"$sum": 1}}},
+            {"$project": {"cnt": "$COUNT(*)","_id": 0}},
+            {"$sort": {"cnt": -1}}
+        ]
+        documents = self.collection.aggregate(query)
+        try:
+            value = next(documents)
+        except StopIteration:
+            return None
+        return value['cnt']
+
     def top_download_books(self, limit: int) -> Iterable[str]:
         query = [
             {"$match": {"resource": {"$regex": "/books/[a-z0-9]*/content"}}},

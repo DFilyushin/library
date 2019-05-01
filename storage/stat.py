@@ -4,12 +4,13 @@ from datetime import datetime
 
 class Stat(object):
 
-    def __init__(self, ip: str = None, resource: str = None, timestamp: str = None):
+    def __init__(self, ip: str = None, resource: str = None, timestamp: str = None, login: str = None):
         if not timestamp:
             timestamp = datetime.now()
         self.ip = ip
         self.resource = resource
         self.timestamp = timestamp
+        self.login = login
 
 
 class StatDAO(object, metaclass=abc.ABCMeta):
@@ -24,6 +25,10 @@ class StatDAO(object, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def stat_by_ip(self, ip: str, start: str, end: str) -> Iterable[dict]:
+        pass
+
+    @abc.abstractmethod
+    def downloads_by_login(self, login: str)->int:
         pass
 
     @abc.abstractmethod
