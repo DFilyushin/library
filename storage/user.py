@@ -7,11 +7,13 @@ class User(object):
     def __init__(self,
                  id: str = None,
                  login: str = None,
-                 password: str = None
+                 password: str = None,
+                 group: str = 'default'
                  ):
         self.id = id
         self.login = login
         self.password = password
+        self.group = group
 
 
 class UserDAO(object, metaclass=abc.ABCMeta):
@@ -34,6 +36,10 @@ class UserDAO(object, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get_count_users(self):
+        pass
+
+    @abc.abstractmethod
+    def delete(self, login:str)->bool:
         pass
 
 

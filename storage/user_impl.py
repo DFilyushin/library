@@ -31,6 +31,11 @@ class MongoUserDAO(UserDAO):
             result['_id'] = bson.ObjectId(result.pop('id'))
         return result
 
+    @classmethod
+    def from_bson(cls, document) -> User:
+        document['id'] = str(document.pop('_id'))
+        return User(**document)
+
     def create(self, user: User) -> User:
         try:
             one_user = self.collection.insert_one(self.to_bson(user))
@@ -43,10 +48,17 @@ class MongoUserDAO(UserDAO):
         pass
 
     def get_all(self) -> Iterable[User]:
-        pass
+        for document in self.collection.find({}):
+            yield self.from_bson(document)
 
     def get_by_login(self, login: str) -> User:
-        pass
+        one_user = self.collection.find_one({'login': login})
+        if not one_user:
+            raise UserNotFound
+        return self.from_bson(one_user)
 
     def get_count_users(self):
         return self.collection.find({}).count()
+
+    def delete(self, login:str)->bool:
+        return self.collection.delete_one({'login': login})
