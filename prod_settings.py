@@ -27,6 +27,9 @@ REDIS_CACHE_DB = 1
 # redis base for cache
 REDIS_SESSION_DB = 2
 
+# default session ttl
+DEFAULT_SESSION_TTL = 300  # seconds
+
 # expire cache time
 CACHE_DEFAULT_TIMEOUT = 43200
 

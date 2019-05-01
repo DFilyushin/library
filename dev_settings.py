@@ -4,8 +4,8 @@ Library development settings
 
 # library settings
 
-LIB_INDEXES = r'D:/librusec/index'
-LIB_ARCHIVE = r'c:/librusec'
+LIB_INDEXES = r'd:/temp/lib.rus.ec/index'
+LIB_ARCHIVE = r'd:/temp/lib.rus.ec'
 TMP_DIR = r'c:/temp'
 
 # default limits for rows
@@ -25,6 +25,9 @@ REDIS_PORT = 6379
 
 # redis base for cache
 REDIS_SESSION_DB = 2
+
+# default session ttl
+DEFAULT_SESSION_TTL = 300  # seconds
 
 # redis base for sessions
 REDIS_CACHE_DB = 1

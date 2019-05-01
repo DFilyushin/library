@@ -26,6 +26,9 @@ REDIS_PORT = 6379
 # redis base for cache
 REDIS_SESSION_DB = 2
 
+# default session ttl
+DEFAULT_SESSION_TTL = 300  # seconds
+
 # redis base for sessions
 REDIS_CACHE_DB = 1
 
