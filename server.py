@@ -237,8 +237,8 @@ class LibraryApp(Flask):
         stats['users'] = 0
         stats['downloads'] = downloads
         stats['views'] = views
-        stats['top-download-books'] = top_download_books
-        stats['top-view-books'] = top_viewed_books
+        stats['topDownloadBooks'] = top_download_books
+        stats['topViewBooks'] = top_viewed_books
         json_data = json.dumps(stats)
         self.wiring.cache_db.set_value('stat', json_data)
         response = app.response_class(
