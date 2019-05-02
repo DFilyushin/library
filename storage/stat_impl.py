@@ -48,7 +48,7 @@ class MongoStatDAO(StatDAO):
     def downloads_by_login(self, login: str)->int:
         query = [
             {"$match": {
-                "resource": {"$regex": "/books/[a-z0-9]*/content"},
+                "action": "bd",
                 "login": login
             }
             },
@@ -65,7 +65,7 @@ class MongoStatDAO(StatDAO):
 
     def top_download_books(self, limit: int) -> Iterable[str]:
         query = [
-            {"$match": {"resource": {"$regex": "/books/[a-z0-9]*/content"}}},
+            {"$match": {"action": "bd"}},
             {"$group": {"_id": {"resource": "$resource"}, "COUNT(*)": {"$sum": 1}}},
             {"$project": {"resource": "$_id.resource", "cnt": "$COUNT(*)","_id": 0}},
             {"$sort": {"cnt": -1}},
@@ -73,13 +73,12 @@ class MongoStatDAO(StatDAO):
         ]
         documents = self.collection.aggregate(query)
         for document in documents:
-            find = re.findall('/books/([a-z0-9]*)/content', document['resource'])
-            document['book_id'] = find[0]
+            document['book_id'] = document['resource']
             yield document
 
     def top_viewed_books(self, limit: int) -> Iterable[str]:
         query = [
-            {"$match": {"resource": {"$regex": "/books/[a-z0-9]*$"}}},
+            {"$match": {"action": "bv"}},
             {"$group": {"_id": {"resource": "$resource"}, "COUNT(*)": {"$sum": 1}}},
             {"$project": {"resource": "$_id.resource", "cnt": "$COUNT(*)","_id": 0}},
             {"$sort": {"cnt": -1}},
@@ -87,14 +86,13 @@ class MongoStatDAO(StatDAO):
         ]
         documents = self.collection.aggregate(query)
         for document in documents:
-            find = re.findall('/books/([a-z0-9]*)$', document['resource'])
-            document['book_id'] = find[0]
+            document['book_id'] = document['resource']
             yield document
 
     def count_download(self, start: datetime, end: datetime)->int:
         query = [
             {"$match": {
-                "resource": {"$regex": "/books/[a-z0-9]*/content"},
+                "action": "bd",
                 "timestamp": {
                     '$gte': start,
                     '$lt': end
@@ -109,13 +107,13 @@ class MongoStatDAO(StatDAO):
         try:
             value = next(documents)
         except StopIteration:
-            return None
+            return 0
         return value['cnt']
 
     def count_viewed(self, start: datetime, end: datetime)->int:
         query = [
             {"$match": {
-                "resource": {"$regex": "/books/[a-z0-9]*$"},
+                "action": "bv",
                 "timestamp": {
                     '$gte': start,
                     '$lt': end
@@ -130,5 +128,5 @@ class MongoStatDAO(StatDAO):
         try:
             value = next(documents)
         except StopIteration:
-            return None
+            return 0
         return value['cnt']
