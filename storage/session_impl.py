@@ -23,7 +23,7 @@ class RedisSessionDAO(SessionDAO):
         :return:
         """
         if sys.version_info[1] >= 6:
-            session_id = str(uuid4())
+            session_id = secrets.token_hex(12)
         else:
             session_id = str(uuid4())
         current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -76,6 +76,6 @@ class RedisSessionDAO(SessionDAO):
         """
         session = self.redis.get(session_id)
         if not session:
-            raise SessionNotFound
+            return None
         session_de = json.loads(session)
         return Session(**session_de)
