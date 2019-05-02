@@ -40,7 +40,7 @@ class Wiring(object):
             self.settings.REDIS_PORT,
             self.settings.REDIS_SESSION_DB
         )
-
+        self.use_sessions = self.settings.USE_SESSIONS
         self.mongo_client = MongoClient(
             host=self.settings.MONGO_HOST,
             port=self.settings.MONGO_PORT)
