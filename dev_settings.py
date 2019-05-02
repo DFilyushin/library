@@ -40,3 +40,6 @@ TASK_QUEUE_NAME = "btasks"
 
 # minimal size for resize books covers
 THUMBNAIL_SIZE = 200, 200
+
+# Use session now?
+USE_SESSIONS = False
