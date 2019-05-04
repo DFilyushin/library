@@ -15,7 +15,7 @@ from storage.author import AuthorNotFound
 from storage.language import LanguageNotFound
 from storage.stat import Stat
 from storage.user import User, UserExists, UserNotFound
-from storage.session import SessionNotFound
+from storage.session import Session, SessionNotFound
 from storage.starred_book import StarredBook, StarExists
 from wiring import Wiring
 from app_utils import row2dict, dataset2dict
@@ -57,10 +57,6 @@ class LibraryApp(Flask):
         self.wiring = Wiring(env)
         self.formats = ['zip', 'fb2']
 
-        self.route("/", defaults={'path': 'index.html'})(self.index)
-        self.route("/<path:path>")(self.index)
-        self.route("/static/js/<path:path>")(self.static_files)
-
         # library api
         self.route("/api/v1/info")(self.get_library_info)
         self.route("/api/v1/stat")(self.get_statistic)
@@ -100,20 +96,21 @@ class LibraryApp(Flask):
     def get_client_ip():
         return request.environ.get('REMOTE_ADDR', request.remote_addr)
 
+    def stat_it(self, action: str, resource: str, username: str):
+        ip = self.get_client_ip()
+        stat = Stat(ip=ip, resource=resource, action=action, login=username)
+        self.wiring.stat.create(stat)
+
     def check_session(self):
         """
         Check current session
-        :return:
+        :return: session object
         """
+        if not self.wiring.settings.USE_SESSIONS:
+            session = self.wiring.sessions.create('develop', self.get_client_ip())
+            return session
         session_id = request.headers.get(SESSION_ID, '', str)
-        session = self.wiring.sessions.get_session(session_id)
-        return session
-
-    def index(self, path):
-        return send_from_directory('web/build', path)
-
-    def static_files(self, path):
-        return send_from_directory('web/build/static/js', path)
+        return self.wiring.sessions.get_session(session_id)
 
     def auth(self):
         login = request.args.get('login', default=None, type=str)
@@ -135,6 +132,10 @@ class LibraryApp(Flask):
         return response
 
     def logout(self):
+        """
+        Logout user session
+        :return:
+        """
         session_id = request.headers.get(SESSION_ID)
         try:
             self.wiring.sessions.close(session_id)
@@ -177,6 +178,10 @@ class LibraryApp(Flask):
         return response
 
     def create_user(self):
+        """
+        Create user
+        :return:
+        """
         login = request.args.get('login', default=None, type=str)
         password = request.args.get('password', default=None, type=str)
         find = re.findall(r'^[a-zA-Z](_(?!(\.|_))|\.(?!(_|\.))|[a-zA-Z0-9]){6,18}[a-zA-Z0-9]$', login)
@@ -201,14 +206,14 @@ class LibraryApp(Flask):
             abort(404)
         if request.method == 'GET':
             starred_books = []
-            result = dict()
-            result['lastLogin'] = session.started
-            result['downloadCount'] = self.wiring.stat.downloads_by_login(login)
-            result['starredBooks'] = starred_books
+            result = {
+                'lastLogin': session.started,
+                'downloadCount': self.wiring.stat.downloads_by_login(login),
+                'starredBooks': starred_books
+            }
         elif request.method == 'DELETE':
             if self.wiring.users.delete(login):
                 return make_response('', 204)
-
 
     def get_statistic(self):
         json_data = self.wiring.cache_db.get_value('stat')
@@ -240,13 +245,13 @@ class LibraryApp(Flask):
             book = self.wiring.book_dao.get_by_id(item['book_id'])
             if book:
                 top_viewed_books.append(row2dict(book))
-
-        stats = dict()
-        stats['users'] = 0
-        stats['downloads'] = downloads
-        stats['views'] = views
-        stats['topDownloadBooks'] = top_download_books
-        stats['topViewBooks'] = top_viewed_books
+        stats = {
+            'users': 0,
+            'downloads': downloads,
+            'views': views,
+            'topDownloadBooks': top_download_books,
+            'topViewBooks': top_viewed_books
+        }
         json_data = json.dumps(stats)
         self.wiring.cache_db.set_value('stat', json_data)
         response = app.response_class(
@@ -269,7 +274,6 @@ class LibraryApp(Flask):
             return abort(404)
         return jsonify(result)
 
-    @reg_stat
     def get_fb2info(self, booksid: str):
         book = self.wiring.book_dao.get_by_id(booksid)
         if not book:
@@ -277,7 +281,6 @@ class LibraryApp(Flask):
         d = self.wiring.book_store.get_book_info(book.filename)
         return jsonify(d)
 
-    @reg_stat
     def download_books(self, booksids: str):
         """
         Download book package
@@ -285,24 +288,30 @@ class LibraryApp(Flask):
         :return: send zip-file
         """
         # check session
-        if not self.check_session():
+        session = self.check_session()
+        if not session:
             return abort(403)
-
         ids = booksids.split(',')
         books = []
         for item in ids:
             book = self.wiring.book_dao.get_by_id(item)
             if book:
                 books.append(book.filename)
+            else:
+                ids.remove(item)
         if not books:
             abort(404)
         zip_file = self.wiring.book_store.extract_books(books)
+
+        # add to statistic
+        if zip_file:
+            for item in ids:
+                self.stat_it('db', item, session.login)
         return send_file(zip_file,
                                mimetype='application/zip',
                                attachment_filename='books.zip',
                                as_attachment=True)
 
-    @reg_stat
     def get_books_by_language(self, languageId):
         limit = request.args.get('limit', self.wiring.settings.DEFAULT_LIMITS, int)
         skip = request.args.get('skip', self.wiring.settings.DEFAULT_SKIP_RECORD, int)
@@ -310,8 +319,11 @@ class LibraryApp(Flask):
         result = [row2dict(row) for row in dataset]
         return jsonify(result)
 
-    @reg_stat
     def get_languages(self):
+        """
+        Get available languages
+        :return:
+        """
         languages = self.wiring.book_dao.get_languages_by_books()
         list_genres = [row['lang'] for row in languages]
         return jsonify(list_genres)
@@ -325,7 +337,6 @@ class LibraryApp(Flask):
             return abort(400)
         return jsonify(row2dict(dataset))
 
-    @reg_stat
     def get_all_genres(self):
         """
         Get all genres
@@ -353,7 +364,6 @@ class LibraryApp(Flask):
         )
         return response
 
-    @reg_stat
     def get_author_by_id(self, authorid):
         """
         Get author by uniq Id
@@ -368,7 +378,6 @@ class LibraryApp(Flask):
             return abort(400)
         return jsonify(row2dict(dataset))
 
-    @reg_stat
     def get_authors_startwith(self, start_text_fullname):
         """
         Get authors last_name startwith start_text
@@ -383,7 +392,6 @@ class LibraryApp(Flask):
             return abort(404)
         return jsonify(result)
 
-    @reg_stat
     def get_book(self, bookid):
         """
         Get book by bookId
@@ -395,7 +403,6 @@ class LibraryApp(Flask):
             return abort(404)
         return jsonify(row2dict(dataset))
 
-    @reg_stat
     def get_book_by_name(self, name):
         """
         Find books by name
@@ -408,7 +415,6 @@ class LibraryApp(Flask):
             return abort(404)
         return jsonify(result)
 
-    @reg_stat
     def get_book_by_search(self):
         """
         Search book by name, series, genre, keyword
@@ -426,7 +432,6 @@ class LibraryApp(Flask):
         result = [row2dict(row) for row in dataset]
         return jsonify(result)
 
-    @reg_stat
     def get_book_by_genre(self, name):
         """
         Get books by genre
@@ -437,7 +442,6 @@ class LibraryApp(Flask):
         result = [row2dict(row) for row in dataset]
         return jsonify(result)
 
-    @reg_stat
     def get_books_by_author(self, author_id):
         """
         Get books by author
@@ -450,13 +454,15 @@ class LibraryApp(Flask):
             return abort(404)
         return jsonify(data)
 
-    @reg_stat
     def download_book(self, bookid):
         """
         Get book content
         :param bookid: Id of book
         :return:
         """
+        session = self.check_session()
+        if not session:
+            return abort(403)
         file_type = request.args.get('type', 'fb2', str)
         if file_type not in self.formats:
             abort(400)
@@ -467,13 +473,13 @@ class LibraryApp(Flask):
         full_path_to_file = self.wiring.book_store.extract_book(int(dataset.filename), file_type == 'zip')
         if not full_path_to_file:
             return abort(404)
+        self.stat_it('db', bookid, session.login)
         return send_file(
             full_path_to_file,
             mimetype='application/octet-stream',
             attachment_filename=output_file,
             as_attachment=True)
 
-    @reg_stat
     def get_library_info(self):
         """
         Get library info
