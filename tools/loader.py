@@ -1,13 +1,16 @@
-from storage.book import Book, BookNotFound
-from storage.author import Author, AuthorNotFound
-from storage.genre import Genre, NewGenre
-from storage.version import LibraryVersion
-from storage.language import Language
-from wiring import Wiring
 import io
 import bson
+import re
 import xml.etree.ElementTree as ET
 from datetime import datetime
+
+from storage.book import Book, BookNotFound
+from storage.author import Author, AuthorNotFound
+from storage.genre import Genre
+from storage.version import LibraryVersion
+from storage.language import Language
+from storage.group import Group
+from wiring import Wiring
 
 # from wiring_motor import Wiring
 
@@ -214,7 +217,7 @@ class NewGenreLoader(object):
             self.genres[appt.get('value')] = genre_item
 
         for key, item in self.genres.items():
-            genre = NewGenre(
+            genre = Genre(
                 id=item['name'],
                 parent=item['parent'],
                 titles=item['title'],
@@ -237,3 +240,67 @@ def update_version():
         added=datetime.now().strftime('%Y%m%d')
     )
     wiring.library_dao.create(version)
+
+
+def create_group():
+    wiring = Wiring()
+    default_group = Group(name='default', limit_per_day=10000)
+    unlim_group = Group(name='unlim', limit_per_day=9999999)
+
+    wiring.groups.create(default_group)
+    wiring.groups.create(unlim_group)
+
+
+def update_group():
+    wiring = Wiring()
+    unlim_group = Group(name='unlim', limit_per_day=9999999)
+    wiring.groups.update(unlim_group)
+
+
+def fix_stat():
+    wiring = Wiring()
+    cnt = 0
+    stats = wiring.stat.collection.find({'resource': {"$regex": "/books/[a-z0-9]*/content$"}})
+    for item in stats:
+        resource = item['resource']
+        id = str(item['_id'])
+        find = re.findall(r'/books/([a-z0-9]*)/content$', resource)
+        id_new = find[0]
+        wiring.stat.collection.update_one({'_id': bson.ObjectId(id)}, {'$set': {'resource': id_new, 'action': 'bd'}})
+        cnt+= 1
+    print('Book download: ' + str(cnt))
+
+    cnt = 0
+    stats = wiring.stat.collection.find({'resource': {"$regex": "/books/[a-z0-9]*$"}})
+    for item in stats:
+        resource = item['resource']
+        id = str(item['_id'])
+        find = re.findall(r'/books/([a-z0-9]*)$', resource)
+        id_new = find[0]
+        wiring.stat.collection.update_one({'_id': bson.ObjectId(id)}, {'$set': {'resource': id_new, 'action': 'bv'}})
+        cnt+= 1
+    print('Book view: ' + str(cnt))
+
+    cnt = 0
+    stats = wiring.stat.collection.find({'resource': {"$regex": "/books/by_author/[a-z0-9]*$"}})
+    for item in stats:
+        resource = item['resource']
+        id = str(item['_id'])
+        find = re.findall(r'/books/by_author/([a-z0-9]*)$', resource)
+        id_new = find[0]
+        wiring.stat.collection.update_one({'_id': bson.ObjectId(id)}, {'$set': {'resource': id_new, 'action': 'av'}})
+        cnt+= 1
+    print('Author view: ' + str(cnt))
+
+    cnt = 0
+    stats = wiring.stat.collection.find({'resource': {"$regex": "/books/by_genre/[a-z0-9]*$"}})
+    for item in stats:
+        resource = item['resource']
+        id = str(item['_id'])
+        find = re.findall(r'/books/by_genre/([a-z0-9]*)$', resource)
+        id_new = find[0]
+        wiring.stat.collection.update_one({'_id': bson.ObjectId(id)}, {'$set': {'resource': id_new, 'action': 'gv'}})
+        cnt+= 1
+    print('Genres view: ' + str(cnt))
+
+# fix_stat()
