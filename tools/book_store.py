@@ -20,7 +20,6 @@ class BookStore(object):
             {'name': 'isbn', 'regxp': r'<isbn>(\S*)</isbn>'},
             {'name': 'year', 'regxp': r'<year>(\S*)</year>'},
             {'name': 'city', 'regxp': r'<city>([\s\S]*)</city>'},
-            {'name': 'annotation', 'regxp': r'<annotation>([\s\S]*)</annotation>'},
             {'name': 'name', 'regxp': r'<book-name>([\s\S]*)</book-name>'},
             {'name': 'publisher', 'regxp': r'<publisher>([\s\S]*)</publisher>'}
         ]
@@ -51,7 +50,7 @@ class BookStore(object):
         dt = Image.open(obj_file)
         dt.thumbnail(self.size, Image.ANTIALIAS)
         dt.save(imgByteArr, format='PNG')
-        return imgByteArr.getvalue()
+        return (imgByteArr.getvalue(), dt.height, dt.width)
 
     def get_zip_by_bookid(self, bookid: str)->str:
         """
@@ -104,15 +103,22 @@ class BookStore(object):
                         c_norm_data = base64.b64decode(find[0][1])
                         c_resized_image = self._resize_image(c_norm_data)
                         if c_resized_image:
-                            c_data2 = base64.b64encode(c_resized_image)
+                            c_data2 = base64.b64encode(c_resized_image[0])
                             fb_info['coverType'] = c_ctype
                             fb_info['cover'] = c_data2.decode('ascii')
+                            fb_info['coverHeight'] = c_resized_image[1]
+                            fb_info['coverWidth'] = c_resized_image[2]
                             break
 
-        regexp_descr = r'<publish-info>(.*)<\/publish-info>'
+        find = re.findall(r'<annotation>([\s\S]*)</annotation>', book_xml)
+        if find:
+            annotation = str(find[0]).strip()
+            fb_info['annotation'] = annotation
+
+        regexp_descr = r'<publish-info>([.\s\S]*)<\/publish-info>'
         find = re.findall(regexp_descr, book_xml)
         if find:
-            description = find[0]
+            description = str(find[0]).strip()
             for item in self.regexps:
                 find_value = re.findall(item['regxp'], description)
                 if find_value:
