@@ -43,3 +43,6 @@ THUMBNAIL_SIZE = 200, 200
 
 # Use session now?
 USE_SESSIONS = False
+
+# Avalaible formats for books
+FORMATS = ('zip', 'fb2')
