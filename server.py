@@ -42,6 +42,7 @@ print("Starting application in {} mode".format(env))
 
 app = LibraryApp("library_librusec")
 app.config.from_object("{}_settings".format(env))
+app.url_map.strict_slashes = False
 
 from endpoints.genres import genres_api
 from endpoints.library import library_api
