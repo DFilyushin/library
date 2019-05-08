@@ -84,7 +84,7 @@ class BookCard extends Component<Prop, State> {
             <Card className={classes.card}>
                 <CardActionArea href={`/#/books/${book.id}/${this.transliterate(book.name)}`}>
                 <CardContent className={classes.content}>
-                    {info && info.cover && <img style={styles.preview} src={`data:${info.coverType};base64, ${info.cover}`} title={book.name} />}
+                    {info && info.cover && this.renderCover(book, info)}
                     <Typography component="h5" variant="h5">{book.name}</Typography>
                     {book.series && <Typography variant="subtitle1" color="textSecondary">{book.series}{Number(book.sernum) > 0 && ': ' + book.sernum}</Typography>}
                     {this.renderAuthors(book.authors)}
@@ -101,7 +101,7 @@ class BookCard extends Component<Prop, State> {
         return (
             <Card className={classes.card}>
                 <CardContent>
-                    {info && info.cover && <img style={styles.preview} src={`data:${info.coverType};base64, ${info.cover}`} title={book.name} />}
+                    {info && info.cover && this.renderCover(book, info)}
                     <Typography component="h5" variant="h5">{book.name}</Typography>
                     {book.series && <Typography variant="subtitle1" color="textSecondary">{book.series}{Number(book.sernum) > 0 && ': ' + book.sernum}</Typography>}
                     {this.renderAuthors(book.authors)}
@@ -112,6 +112,16 @@ class BookCard extends Component<Prop, State> {
                     <Button href={Endpoints.getBooksContent(book.id)}>Скачать FB2</Button>
                 </CardActions>
             </Card>
+        );
+    }
+
+    private renderCover(book: Book, info: FB2Info): JSX.Element | null {
+        return (
+            <div className="books">
+                <div className="book">
+                    <img style={styles.preview} src={`data:${info.coverType};base64, ${info.cover}`} title={book.name} />
+                </div>
+            </div>
         );
     }
 
