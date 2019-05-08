@@ -70,7 +70,7 @@ class BookLoader(object):
                     series=book_item[3],
                     sernum=book_item[4],
                     filename=book_item[5],
-                    deleted=book_item[8],
+                    deleted=book_item[8]=='1',
                     lang=book_item[11],
                     keywords=keywords_list,
                     added=book_item[10],
@@ -88,3 +88,7 @@ class BookLoader(object):
         files = self.get_files()
         book_lines = self.get_file_bookline(files)
         self.process_line(book_lines)
+
+if __name__ == '__main__':
+    loader = BookLoader()
+    loader.process()
