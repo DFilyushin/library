@@ -1,7 +1,6 @@
 from typing import Iterable
 import bson
 import bson.errors
-import pymongo
 from pymongo import ASCENDING
 from pymongo.collection import Collection
 from pymongo.database import Database
@@ -204,3 +203,23 @@ class MongoBookDAO(BookDAO):
         for document in documents:
             yield document
 
+    def get_book_by_filename(self, filename: str):
+        try:
+            documents = self.collection.aggregate([
+                {"$match": {'filename': filename}},
+                {"$lookup":
+                    {
+                        'from': 'authors',
+                        'localField': 'authors',
+                        'foreignField': '_id',
+                        'as': 'authors'
+                    }
+                }
+            ])
+        except bson.errors.InvalidId:
+            return None
+        try:
+            value = next(documents)
+        except StopIteration:
+            return None
+        return self.from_bson(value)

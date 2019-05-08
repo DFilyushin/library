@@ -15,7 +15,13 @@ class Book(object):
             lang: str = None,
             keywords: list = None,
             added: str = None,
-            genres: list =None
+            genres: list =None,
+            year: str = '',
+            isbn: str = '',
+            city: str = '',
+            pub_name: str = '',
+            publisher: str = '',
+            annotation: str = ''
     ):
         self.id = id
         self.name = name
@@ -28,6 +34,12 @@ class Book(object):
         self.keywords = keywords
         self.added = added
         self.genres = genres
+        self.year = year
+        self.isbn = isbn
+        self.city = city
+        self.pub_name = pub_name
+        self.publisher = publisher
+        self.annotation = annotation
 
 
 class BookDAO(object, metaclass=abc.ABCMeta):
@@ -70,6 +82,10 @@ class BookDAO(object, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get_genres_by_author(self, id: str):
+        pass
+
+    @abc.abstractmethod
+    def get_book_by_filename(self, filename: str):
         pass
 
 
