@@ -1,6 +1,7 @@
 import os
 import io
 import bson
+from datetime import datetime
 from time import time
 from wiring import Wiring
 from storage.book import Book
@@ -12,15 +13,15 @@ class BookLoader(object):
     Book loader from index files
     """
 
-    def __init__(self):
-        self.wiring = Wiring()
+    def __init__(self, wiring: Wiring):
+        self.wiring = wiring
+        self.path = self.wiring.settings.LIB_INDEXES
 
     def get_files(self):
-        path = self.wiring.settings.LIB_INDEXES
-        for file in filter(lambda x: x.endswith('.inp'), os.listdir(path)):
+        for file in filter(lambda x: x.endswith('.inp'), os.listdir(self.path)):
             t0 = time()
-            yield os.path.join(path, file)
-            print(file, time()-t0)
+            yield os.path.join(self.path, file)
+            print('File {} processed by {}'.format(file, time()-t0))
 
     def get_file_bookline(self, files):
         for filename in files:
@@ -55,40 +56,55 @@ class BookLoader(object):
         # AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;LIBRATE;KEYWORDS;
         #   0   ;  1  ;  2  ;  3   ;  4  ; 5  ; 6  ;  7  ; 8 ; 9 ; 10 ; 11 ;   12  ;   13   ;
         books = []
+        count_lines = 0
+        count_new = 0
         for line in lines:
+            count_lines += 1
             book_item = line.split(chr(4))
             keywords_list = []
             keywords = book_item[13]
             if keywords:
                 keywords_list = keywords.split(',')
             authors = self.get_authors(book_item[0])  # get author keys
-            genres = book_item[1].split(':')[:-1] # get genres
+            genres = book_item[1].split(':')[:-1]  # get genres
+
+            # Check if book exists by filename
+
+            exists_book = self.wiring.book_dao.get_book_by_filename(book_item[5])
+            if exists_book:
+                continue
+
             book = Book(
-                    # slug=book_item[5],
                     name=book_item[2],
                     authors=authors,
                     series=book_item[3],
                     sernum=book_item[4],
                     filename=book_item[5],
-                    deleted=book_item[8]=='1',
+                    deleted=book_item[8] == '1',
                     lang=book_item[11],
                     keywords=keywords_list,
                     added=book_item[10],
                     genres=genres
                 )
             books.append(book)
+            count_new += 1
             if len(books) > 100:
                 self.wiring.book_dao.create_many(books)
                 books = []
-            # self.wiring.card_dao.create(book)
         if books:
             self.wiring.book_dao.create_many(books)
+        return count_lines, count_new
 
     def process(self):
+        print('{}: Import books, authors from index files...'.format(datetime.now()))
         files = self.get_files()
         book_lines = self.get_file_bookline(files)
-        self.process_line(book_lines)
+        all, new = self.process_line(book_lines)
+        print('All books: {}\nNew book: {}'.format(all, new))
+        print('{}: Done'.format(datetime.now()))
+
 
 if __name__ == '__main__':
-    loader = BookLoader()
+    wiring = Wiring()
+    loader = BookLoader(wiring)
     loader.process()

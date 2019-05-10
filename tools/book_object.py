@@ -137,6 +137,8 @@ class FBBookFile(object):
         if not find[0]:
             return None
         image = re.findall('=\"(.*?)\"', find[0])
+        if not image:
+            return None
         image_tagged = image[0]
         if image_tagged[0] != '#':
             return None

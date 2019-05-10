@@ -1,18 +1,19 @@
 import os
 import zipfile
+from datetime import datetime
 from wiring import Wiring
 from tools.book_object import FBBookFile
-from storage.book import Book, BookNotFound
+from storage.book import BookNotFound
 from time import time
 
 
 class ZipArchiveProcessor(object):
 
-    def __init__(self, source: str, output_dir: str, size, wiring: Wiring):
-        self.source = source
-        self.output_dir = output_dir
-        self.size = size
+    def __init__(self, wiring: Wiring):
         self.wiring = wiring
+        self.source = wiring.settings.LIB_ARCHIVE
+        self.output_dir = wiring.settings.IMAGE_DIR
+        self.size = wiring.settings.THUMBNAIL_SIZE
         self.book_object = FBBookFile()
 
     @staticmethod
@@ -61,6 +62,8 @@ class ZipArchiveProcessor(object):
                 book = self.wiring.book_dao.get_book_by_filename(book_num)
             except BookNotFound:
                 return None
+            if not book:
+                return None
 
             book.isbn = self.book_object.isbn
             book.publisher = self.book_object.publisher
@@ -81,18 +84,16 @@ class ZipArchiveProcessor(object):
                 file.write(mem)
 
     def process(self):
+        print('{}: Extract additional information from zip-files...'.format(datetime.now()))
         for file in self.get_zip_files():
             t0 = time()
             for item in self.get_archive_books(file):
                 self.process_archive_item(item)
             print(file, time() - t0)
+        print('{}: Done'.format(datetime.now()))
 
 
-OUTPUT_DIR = r'e:\temp\images'
-wiring = Wiring()
-c = ZipArchiveProcessor(
-    source=wiring.settings.LIB_ARCHIVE,
-    output_dir=OUTPUT_DIR,
-    size=wiring.settings.THUMBNAIL_SIZE,
-    wiring=wiring)
-c.process()
+if __name__ == '__main__':
+    w = Wiring()
+    zap = ZipArchiveProcessor(w)
+    zap.process()

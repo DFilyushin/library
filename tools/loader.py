@@ -1,41 +1,42 @@
-import os
-import io
-import bson
-import re
-import xml.etree.ElementTree as ET
-from datetime import datetime
-from storage.version import LibraryVersion
-from storage.group import Group
 from wiring import Wiring
+from tools.book_loader import BookLoader
+from tools.library_extractor import ZipArchiveProcessor
+from tools.group_creator import create_group
+from tools.update_version import update_version
+from tools.language_loader import LanguageLoader
+from tools.genre_loader import GenreLoader
+
+# Import new data
+
+# 1 step - import index files with books and authors
+# 2 step - import from zips
+# 3 step - import genres
+# 4 step - import language
+# 5 step - create groups
+# Final - update library version
 
 
-def update_version():
+if __name__ == '__main__':
     wiring = Wiring()
-    path = os.path.join(wiring.settings.LIB_INDEXES, 'version.info')
-    with io.open(path) as file:
-        num_version = file.read()
 
-    version = LibraryVersion(
-        version=num_version.rstrip(),
-        added=datetime.now().strftime('%Y%m%d')
-    )
-    wiring.library_dao.create(version)
+    # 1
+    index = BookLoader(wiring)
+    index.process()
 
+    # 2
+    zip_loader = ZipArchiveProcessor(wiring)
+    zip_loader.process()
 
-def create_group():
-    wiring = Wiring()
-    default_group = Group(name='default', limit_per_day=10000)
-    unlim_group = Group(name='unlim', limit_per_day=9999999)
+    # 3
+    genre_loader = GenreLoader(wiring)
+    genre_loader.process()
 
-    wiring.groups.create(default_group)
-    wiring.groups.create(unlim_group)
+    # 4
+    lang_loader = LanguageLoader(wiring)
+    lang_loader.process()
 
+    # 5
+    create_group(wiring)
 
-def update_group():
-    wiring = Wiring()
-    unlim_group = Group(name='unlim', limit_per_day=9999999)
-    wiring.groups.update(unlim_group)
-
-
-
-# fix_stat()
+    # Final - update version library
+    update_version(wiring)

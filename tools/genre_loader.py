@@ -1,13 +1,16 @@
 import os
 import io
+from datetime import datetime
 from wiring import Wiring
 from storage.genre import Genre
+import xml.etree.ElementTree as ET
 
 
 class GenreLoader(object):
-    def __init__(self):
-        self.wiring = Wiring()
+    def __init__(self, wiring: Wiring):
+        self.wiring = wiring
         self.genres = dict()
+        self.path = os.path.join(self.wiring.settings.LIB_INDEXES, 'genres.xml')
 
     def get_subgenre(self, node, parent_name):
         for subgenre in node.getchildren():
@@ -36,16 +39,20 @@ class GenreLoader(object):
             else:
                 print('{} skipped 2'.format(item['name']))
 
-    def process(self):
-        path = os.path.join(self.wiring.settings.LIB_INDEXES, 'genres.xml')
-        root = ET.parse(path).getroot()
-        for appt in root.getchildren():  # genre
+    def get_xml_genres(self):
+        try:
+            root = ET.parse(self.path).getroot()
+        except FileNotFoundError:
+            print('File {} not found'.format(self.path))
+            return None
+
+        for record in root.getchildren():  # genre
             genre_item = dict()
-            genre_item['name'] = appt.get('value')
+            genre_item['name'] = record.get('value')
             genre_item['parent'] = ''
             genre_item['title'] = dict()
             genre_item['detailed'] = dict()
-            for elem in appt.getchildren():
+            for elem in record.getchildren():
                 if elem.tag == 'subgenres':
                     self.get_subgenre(elem, genre_item['name'])
                 elif elem.tag == 'root-descr':
@@ -53,7 +60,7 @@ class GenreLoader(object):
                     lang_title = elem.get('genre-title')
                     genre_item['title'][lang] = lang_title
                     genre_item['detailed'][elem.get('lang')] = elem.get('detailed')
-            self.genres[appt.get('value')] = genre_item
+            self.genres[record.get('value')] = genre_item
 
         for key, item in self.genres.items():
             genre = Genre(
@@ -66,3 +73,14 @@ class GenreLoader(object):
                 self.wiring.genre_dao.create(genre)
             except Exception as E:
                 print('Item {} is skipped cause error {}'.format(item['name'], str(E)))
+
+    def process(self):
+        print('{}: Import genres...'.format(datetime.now()))
+        self.get_xml_genres()
+        print('{}: Done'.format(datetime.now()))
+
+
+if __name__ == '__main__':
+    w = Wiring()
+    genre_loader = GenreLoader(w)
+    genre_loader.process()
