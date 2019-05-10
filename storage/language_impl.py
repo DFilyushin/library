@@ -3,8 +3,9 @@ import bson
 import bson.errors
 from pymongo.collection import Collection
 from pymongo.database import Database
+from pymongo.errors import DuplicateKeyError
 from pymongo import ASCENDING
-from storage.language import Language, LanguageDAO, LanguageNotFound
+from storage.language import Language, LanguageDAO, LanguageNotFound, LanguageExists
 
 
 class MongoLanguageDAO(LanguageDAO):
@@ -32,8 +33,10 @@ class MongoLanguageDAO(LanguageDAO):
         return Language(**document)
 
     def create(self, language: Language) -> Language:
-        one_language = self.collection.insert_one(self.to_bson(language))
-        #  one_language.id = str(one_language.inserted_id)
+        try:
+            one_language = self.collection.insert_one(self.to_bson(language))
+        except DuplicateKeyError:
+            raise LanguageExists
         return one_language
 
     def update(self, language: Language) -> Language:
