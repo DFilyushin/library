@@ -5,8 +5,15 @@ from flask import abort
 from flask import jsonify
 from flask import send_file
 from app_utils import row2dict, dataset2dict
+from storage.stat import Stat
 
 book_api = Blueprint('books', __name__, url_prefix='/api/v1/books')
+
+
+def stat_it(wiring, action: str, resource: str, username: str):
+    ip = request.environ.get('REMOTE_ADDR', request.remote_addr)
+    stat = Stat(ip=ip, resource=resource, action=action, login=username)
+    wiring.stat.create(stat)
 
 
 @book_api.route('/<bookid>/')
@@ -16,9 +23,10 @@ def get_book(bookid):
     :param bookid: Id of book
     :return:
     """
-    dataset = app.wiring.book_dao.get_by_id(bookid)
+    dataset = app.wiring.book_ext_dao.get_by_id(bookid)
     if not dataset:
         return abort(404)
+    stat_it(app.wiring, 'bv', bookid, '')
     return jsonify(row2dict(dataset))
 
 
@@ -42,7 +50,7 @@ def download_book(bookid):
     full_path_to_file = app.wiring.book_store.extract_book(int(dataset.filename), file_type == 'zip')
     if not full_path_to_file:
         return abort(404)
-    # self.stat_it('db', bookid, session.login)
+    stat_it(app.wiring, 'bd', bookid, session.login)
     return send_file(
         full_path_to_file,
         mimetype='application/octet-stream',
@@ -75,8 +83,8 @@ def download_books(booksids: str):
 
     # add to statistic
     if zip_file:
-        #for item in ids:
-            # stat_it('db', item, session.login)
+        for item in ids:
+            stat_it(app.wiring, 'bd', item, session.login)
         return send_file(zip_file,
                            mimetype='application/zip',
                            attachment_filename='books.zip',
