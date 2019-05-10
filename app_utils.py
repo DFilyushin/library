@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 
-
 def exp_dict(item):
     out = dict()
     for key, value in item.items():
@@ -49,6 +48,7 @@ def dataset2dict(dataset):
 def get_periods():
     now = datetime.now()
     result = []
+    result.append({'name': 'all', 'start': 0, 'end': now})
     result.append({'name': 'day', 'start': now - timedelta(days=1), 'end': now})
     result.append({'name': 'month', 'start': now - timedelta(weeks=4), 'end': now})
     result.append({'name': 'week', 'start': now - timedelta(weeks=1), 'end': now})
