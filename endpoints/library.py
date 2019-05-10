@@ -73,8 +73,10 @@ def get_statistic():
         book = app.wiring.book_dao.get_by_id(item['book_id'])
         if book:
             top_viewed_books.append(row2dict(book))
+    user_count = app.wiring.users.get_count_users()
+
     stats = {
-        'users': 0,
+        'users': user_count,
         'downloads': downloads,
         'views': views,
         'topDownloadBooks': top_download_books,
