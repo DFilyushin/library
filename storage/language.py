@@ -31,3 +31,6 @@ class LanguageDAO(object, metaclass=abc.ABCMeta):
 
 class LanguageNotFound(Exception):
     pass
+
+class LanguageExists(Exception):
+    pass
