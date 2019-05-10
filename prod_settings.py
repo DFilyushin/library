@@ -2,9 +2,18 @@
 Library production settings
 """
 
+
+# dir for library index
 LIB_INDEXES = r'path/to/librusec/index'
+
+# dir for zips
 LIB_ARCHIVE = r'path/to/librusec/library'
+
+# tmp dir for zip, fb2
 TMP_DIR = r'/path/to/tmp/directory'
+
+# dir for images
+IMAGE_DIR = r'/path/to/image/dir'
 
 # default limits for rows
 DEFAULT_LIMITS = 20

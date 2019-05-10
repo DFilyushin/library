@@ -2,11 +2,17 @@
 Library test settings
 """
 
-# library settings
-
+# dir for library index
 LIB_INDEXES = r'd:/librusec/index'
+
+# dir for zips
 LIB_ARCHIVE = r'c:/librusec'
+
+# tmp dir for zip, fb2
 TMP_DIR = r'c:/temp'
+
+# dir for images
+IMAGE_DIR = r'/path/to/image/dir'
 
 # default limits for rows
 DEFAULT_LIMITS = 20
