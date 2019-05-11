@@ -73,4 +73,14 @@ export default interface Book {
      * @memberof Book
      */
     added?: string;
+    
+    cover: string;
+
+    city: string;
+
+    publisher: string;
+
+    year: number;
+
+    isbn: string;
 }
