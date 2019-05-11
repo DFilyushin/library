@@ -17,11 +17,11 @@ class BookStore(object):
         self.books_path = library_path
         self.size = size
         self.regexps = [
-            {'name': 'isbn', 'regxp': r'<isbn>(\S*)</isbn>'},
-            {'name': 'year', 'regxp': r'<year>(\S*)</year>'},
-            {'name': 'city', 'regxp': r'<city>([\s\S]*)</city>'},
-            {'name': 'name', 'regxp': r'<book-name>([\s\S]*)</book-name>'},
-            {'name': 'publisher', 'regxp': r'<publisher>([\s\S]*)</publisher>'}
+            {'name': 'isbn', 'regxp': r'<isbn>(.*)</isbn>'},
+            {'name': 'year', 'regxp': r'<year>(\d*)</year>'},
+            {'name': 'city', 'regxp': r'<city>(.*)</city>'},
+            {'name': 'name', 'regxp': r'<book-name>(.*)</book-name>'},
+            {'name': 'publisher', 'regxp': r'<publisher>(.*)</publisher>'}
         ]
         self.binary_regexps = [
             r'<binary\s+content-type=\"([^\"]+)\"\s+id=\"{}\"[^>]*>([.\s\S]*)</binary>',

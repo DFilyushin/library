@@ -24,13 +24,11 @@ def get_library_info():
     authors_count = app.wiring.author_dao.get_count_authors()
     books_count = app.wiring.book_dao.get_count_books()
     version = app.wiring.library_dao.get_version()
-    user_count = app.wiring.users.get_count_users()
 
     library_info = {
         "version": version.version,
         "authorsCount": authors_count,
-        "booksCount": books_count,
-        "usersCount": user_count
+        "booksCount": books_count
     }
     json_data = json.dumps(library_info)
     app.wiring.cache_db.set_value('info', json_data, 18000)  # one hour cache

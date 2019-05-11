@@ -5,7 +5,7 @@ class Endpoints {
      * Get all genres
      */
     public static getGenres() {
-        return `${Endpoints.API_URL}/genres`;
+        return `${Endpoints.API_URL}/genres/`;
     }
 
     /**
@@ -48,13 +48,6 @@ class Endpoints {
      */
     public static getBooksContent(bookId: string) {
         return `${Endpoints.API_URL}/books/${bookId}/content`;
-    }
-
-    /**
-     * Get book FB2 description and cover image
-     */
-    public static getBooksFB2Info(bookId: string) {
-        return `${Endpoints.API_URL}/books/${bookId}/fb2info`;
     }
 }
 
