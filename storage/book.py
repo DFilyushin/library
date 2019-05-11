@@ -5,41 +5,27 @@ from typing import Iterable
 class Book(object):
     def __init__(
             self,
-            id: str = None,
-            name: str = None,
-            authors: list = None,
-            series: str = None,
-            sernum: int = None,
-            filename: str = None,
-            deleted: bool = False,
-            lang: str = None,
-            keywords: list = None,
-            added: str = None,
-            genres: list =None,
-            year: str = '',
-            isbn: str = '',
-            city: str = '',
-            pub_name: str = '',
-            publisher: str = '',
-            annotation: str = ''
+            **kwargs
+
     ):
-        self.id = id
-        self.name = name
-        self.authors = authors
-        self.series = series
-        self.sernum = sernum
-        self.filename = filename
-        self.deleted = deleted
-        self.lang = lang
-        self.keywords = keywords
-        self.added = added
-        self.genres = genres
-        self.year = year
-        self.isbn = isbn
-        self.city = city
-        self.pub_name = pub_name
-        self.publisher = publisher
-        self.annotation = annotation
+        self.id = kwargs.get('id', '')
+        self.name = kwargs.get('name', '')
+        self.authors = kwargs.get('authors', '')
+        self.series = kwargs.get('series', '')
+        self.sernum = kwargs.get('sernum', '')
+        self.filename = kwargs.get('filename', '')
+        self.deleted = kwargs.get('deleted', '')
+        self.lang = kwargs.get('lang', '')
+        self.keywords = kwargs.get('keywords', '')
+        self.added = kwargs.get('added', '')
+        self.genres = kwargs.get('genres', '')
+        self.year = kwargs.get('year', '')
+        self.isbn = kwargs.get('isbn', '')
+        self.city = kwargs.get('city', '')
+        self.pub_name = kwargs.get('pub_name', '')
+        self.publisher = kwargs.get('publisher', '')
+        self.height = kwargs.get('height', '')
+        self.width = kwargs.get('width', '')
 
 
 class BookDAO(object, metaclass=abc.ABCMeta):
@@ -86,6 +72,10 @@ class BookDAO(object, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get_book_by_filename(self, filename: str):
+        pass
+
+    @abc.abstractmethod
+    def get_popular_books(self, limit: int):
         pass
 
 

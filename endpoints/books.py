@@ -1,3 +1,4 @@
+import os
 from flask import Blueprint
 from flask import request
 from flask import current_app as app
@@ -8,6 +9,9 @@ from app_utils import row2dict, dataset2dict
 from storage.stat import Stat
 
 book_api = Blueprint('books', __name__, url_prefix='/api/v1/books')
+
+simple_view = ['id', 'authors', 'city', 'genres', 'isbn', 'lang', 'name', 'pub_name', 'publisher', 'series', 'sernum', 'year']
+full_view = ['id', 'authors', 'city', 'genres', 'isbn', 'lang', 'name', 'pub_name', 'publisher', 'series', 'sernum', 'year', 'annotation']
 
 
 def stat_it(wiring, action: str, resource: str, username: str):
@@ -27,7 +31,12 @@ def get_book(bookid):
     if not dataset:
         return abort(404)
     stat_it(app.wiring, 'bv', bookid, '')
-    return jsonify(row2dict(dataset))
+    book = row2dict(dataset, full_view)
+    cover_name = '{}.jpg'.format(book['id'])
+    cover_path = os.path.join(app.wiring.settings.IMAGE_DIR, cover_name)
+    is_exists = os.path.exists(cover_path)
+    book['cover'] = cover_name if is_exists else ""
+    return jsonify(book)
 
 
 @book_api.route('/<bookid>/content')
@@ -99,7 +108,7 @@ def get_books_by_author(author_id):
     :return:
     """
     dataset = app.wiring.book_dao.get_by_author(author_id)
-    data = dataset2dict(dataset)
+    data = dataset2dict(dataset, simple_view)
     if not data:
         return abort(404)
     return jsonify(data)
@@ -157,3 +166,13 @@ def get_fb2info(booksid: str):
         abort(404)
     d = app.wiring.book_store.get_book_info(book.filename)
     return jsonify(d)
+
+
+@book_api.route('/popular')
+def popular_books():
+    limit = request.args.get('limit', app.wiring.settings.DEFAULT_LIMITS, int)
+    books = app.wiring.book_dao.get_popular_books(limit)
+    if not books:
+        abort(404)
+    result = [row2dict(row) for row in books]
+    return jsonify(result)

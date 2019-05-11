@@ -17,6 +17,7 @@ from storage.group_impl import MongoGroupDAO
 from api_cache import AppCache
 from storage.session_impl import RedisSessionDAO
 from storage.starred_book_impl import MongoStarredBook
+from storage.book_ext_impl import MongoExtBookDAO
 
 
 class Wiring(object):
@@ -46,6 +47,7 @@ class Wiring(object):
             port=self.settings.MONGO_PORT)
         self.mongo_database = self.mongo_client[self.settings.MONGO_DATABASE]
         self.book_dao = MongoBookDAO(self.mongo_database)
+        self.book_ext_dao = MongoExtBookDAO(self.mongo_database)
         self.author_dao = MongoAuthorDAO(self.mongo_database)
         self.genre_dao = MongoGenreDAO(self.mongo_database)
         self.library_dao = MongoVersionDAO(self.mongo_database)

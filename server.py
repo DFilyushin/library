@@ -2,7 +2,6 @@ import os.path
 import flask_cors
 from flask import request
 from flask import Flask
-from storage.stat import Stat
 from wiring import Wiring
 
 
@@ -16,22 +15,14 @@ class LibraryApp(Flask):
         flask_cors.CORS(self)
         self.wiring = Wiring(env)
 
-    @staticmethod
-    def get_client_ip():
-        return request.environ.get('REMOTE_ADDR', request.remote_addr)
-
-    def stat_it(self, action: str, resource: str, username: str):
-        ip = self.get_client_ip()
-        stat = Stat(ip=ip, resource=resource, action=action, login=username)
-        self.wiring.stat.create(stat)
-
     def check_session(self):
         """
         Check current session
         :return: session object
         """
         if not self.wiring.settings.USE_SESSIONS:
-            session = self.wiring.sessions.create('develop', self.get_client_ip())
+            client_ip = request.environ.get('REMOTE_ADDR', request.remote_addr)
+            session = self.wiring.sessions.create('develop', client_ip)
             return session
         session_id = request.headers.get(SESSION_ID, '', str)
         return self.wiring.sessions.get_session(session_id)
