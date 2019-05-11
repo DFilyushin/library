@@ -37,7 +37,13 @@ def get_book(bookid):
     cover_path = os.path.join(app.wiring.settings.IMAGE_DIR, cover_name)
     is_exists = os.path.exists(cover_path)
     book['cover'] = '/cover/' + cover_name if is_exists else ""
-    return json.dumps(book, ensure_ascii=False).encode('utf8')
+    json_data = json.dumps(book, ensure_ascii=False).encode('utf8')
+    response = app.response_class(
+        response=json_data,
+        status=200,
+        mimetype='application/json'
+    )
+    return response
 
 
 @book_api.route('/<bookid>/content')
@@ -112,7 +118,13 @@ def get_books_by_author(author_id):
     data = dataset2dict(dataset, simple_view)
     if not data:
         return abort(404)
-    return json.dumps(data, ensure_ascii=False).encode('utf8')
+    json_data = json.dumps(data, ensure_ascii=False).encode('utf8')
+    response = app.response_class(
+        response=json_data,
+        status=200,
+        mimetype='application/json'
+    )
+    return response
 
 
 @book_api.route('/by_name/<name>')
@@ -126,7 +138,13 @@ def get_book_by_name(name):
     result = [row2dict(row) for row in dataset]
     if not result:
         return abort(404)
-    return json.dumps(result, ensure_ascii=False).encode('utf8')
+    json_data = json.dumps(result, ensure_ascii=False).encode('utf8')
+    response = app.response_class(
+        response=json_data,
+        status=200,
+        mimetype='application/json'
+    )
+    return response
 
 
 @book_api.route('/by_genre/<name>')
@@ -138,7 +156,13 @@ def get_book_by_genre(name):
     """
     dataset = app.wiring.book_dao.books_by_genres(name)
     result = [row2dict(row) for row in dataset]
-    return json.dumps(result, ensure_ascii=False).encode('utf8')
+    json_data = json.dumps(result, ensure_ascii=False).encode('utf8')
+    response = app.response_class(
+        response=json_data,
+        status=200,
+        mimetype='application/json'
+    )
+    return response
 
 
 @book_api.route('/search/')
@@ -157,7 +181,13 @@ def get_book_by_search():
     dataset = app.wiring.book_dao.search_book(
         name=f_name, lang=f_lang, series=f_series, keyword=f_keyword, genre=f_genre, skip=f_skip, limit=f_limit)
     result = [row2dict(row) for row in dataset]
-    return json.dumps(result, ensure_ascii=False).encode('utf8')
+    json_data = json.dumps(result, ensure_ascii=False).encode('utf8')
+    response = app.response_class(
+        response=json_data,
+        status=200,
+        mimetype='application/json'
+    )
+    return response
 
 
 @book_api.route('/<booksid>/fb2info')
@@ -166,7 +196,13 @@ def get_fb2info(booksid: str):
     if not book:
         abort(404)
     d = app.wiring.book_store.get_book_info(book.filename)
-    return json.dumps(d, ensure_ascii=False).encode('utf8')
+    json_data = json.dumps(d, ensure_ascii=False).encode('utf8')
+    response = app.response_class(
+        response=json_data,
+        status=200,
+        mimetype='application/json'
+    )
+    return response
 
 
 @book_api.route('/popular')
@@ -176,4 +212,10 @@ def popular_books():
     if not books:
         abort(404)
     result = [row2dict(row) for row in books]
-    return json.dumps(result, ensure_ascii=False).encode('utf8')
+    json_data = json.dumps(result, ensure_ascii=False).encode('utf8')
+    response = app.response_class(
+        response=json_data,
+        status=200,
+        mimetype='application/json'
+    )
+    return response

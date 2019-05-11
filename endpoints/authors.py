@@ -23,7 +23,13 @@ def get_all_authors():
     result = [row2dict(row) for row in dataset]
     if not result:
         return abort(404)
-    return json.dumps(result, ensure_ascii=False).encode('utf8')
+    json_data = json.dumps(result, ensure_ascii=False).encode('utf8')
+    response = app.response_class(
+        response=json_data,
+        status=200,
+        mimetype='application/json'
+    )
+    return response
 
 
 @authors_api.route('/<authorid>')
@@ -39,7 +45,14 @@ def get_author_by_id(authorid):
         return abort(404)
     except Exception as err:
         return abort(400)
-    return json.dumps(row2dict(dataset), ensure_ascii=False).encode('utf8')
+    json_data = json.dumps(row2dict(dataset), ensure_ascii=False).encode('utf8')
+    response = app.response_class(
+        response=json_data,
+        status=200,
+        mimetype='application/json'
+    )
+    return response
+
 
 
 @authors_api.route('/start_with/<start_text_fullname>')
@@ -55,11 +68,23 @@ def get_authors_startwith(start_text_fullname):
     result = [row2dict(row) for row in dataset]
     if not result:
         return abort(404)
-    return json.dumps(result, ensure_ascii=False).encode('utf8')
+    json_data = json.dumps(result, ensure_ascii=False).encode('utf8')
+    response = app.response_class(
+        response=json_data,
+        status=200,
+        mimetype='application/json'
+    )
+    return response
 
 
 @authors_api.route('/<id>/genres')
 def get_author_genres(id):
     genres = app.wiring.book_dao.get_genres_by_author(id)
     list_genres = [row['genres'] for row in genres]
-    return json.dumps(list_genres, ensure_ascii=False).encode('utf8')
+    json_data = json.dumps(list_genres, ensure_ascii=False).encode('utf8')
+    response = app.response_class(
+        response=json_data,
+        status=200,
+        mimetype='application/json'
+    )
+    return response
