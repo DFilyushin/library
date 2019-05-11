@@ -74,9 +74,10 @@ class MongoBookDAO(BookDAO):
 
     def update(self, book: Book) -> Book:
         book_id =book.filename
+        bson_object = self.to_bson(book)
         self.collection.update_one(
             {'filename': book_id},
-            {'$set': self.to_bson(book)}
+            {'$set': bson_object}
         )
         return book
 
@@ -99,6 +100,19 @@ class MongoBookDAO(BookDAO):
 
     def get_by_slug(self, slug: str)->Book:
         return self._get_one_by_query({'slug': slug})
+
+    def _get_by_id(self, book_id: str):
+        try:
+            documents = self.collection.aggregate([
+                {"$match": {'filename': book_id}}
+            ])
+        except bson.errors.InvalidId:
+            return None
+        try:
+            value = next(documents)
+        except StopIteration:
+            return None
+        return self.from_bson(value)
 
     def get_by_id(self, book_id: str):
         try:

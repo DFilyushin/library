@@ -70,8 +70,10 @@ class BookLoader(object):
 
             # Check if book exists by filename
 
-            exists_book = self.wiring.book_dao.get_book_by_filename(book_item[5])
+            exists_book = self.wiring.book_dao._get_by_id(book_item[5])
             if exists_book:
+                exists_book.authors = authors
+                self.wiring.book_dao.update(exists_book)
                 continue
 
             book = Book(
