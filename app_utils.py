@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+
 def exp_dict(item):
     out = dict()
     for key, value in item.items():
@@ -12,9 +13,12 @@ def exp_dict(item):
     return out
 
 
-def row2dict(row):
+def row2dict(row, view_list: list = None):
     d = dict()
     for column in row.__dict__:
+        if view_list:
+            if column not in view_list:
+                continue
         attr = getattr(row, column)
         if type(attr) == list:
             in_list = []
@@ -38,16 +42,16 @@ def row2dict(row):
     return d
 
 
-def dataset2dict(dataset):
+def dataset2dict(dataset, view_list: list = None):
     result = []
     for row in dataset:
-        result.append(row2dict(row))
+        result.append(row2dict(row, view_list))
     return result
 
 
 def get_periods():
     now = datetime.now()
-    result = []
+    result = list()
     result.append({'name': 'all', 'start': 0, 'end': now})
     result.append({'name': 'day', 'start': now - timedelta(days=1), 'end': now})
     result.append({'name': 'month', 'start': now - timedelta(weeks=4), 'end': now})
