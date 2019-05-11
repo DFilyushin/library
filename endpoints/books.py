@@ -1,4 +1,5 @@
 import os
+import json
 from flask import Blueprint
 from flask import request
 from flask import current_app as app
@@ -35,8 +36,8 @@ def get_book(bookid):
     cover_name = '{}.jpg'.format(book['id'])
     cover_path = os.path.join(app.wiring.settings.IMAGE_DIR, cover_name)
     is_exists = os.path.exists(cover_path)
-    book['cover'] = cover_name if is_exists else ""
-    return jsonify(book)
+    book['cover'] = '/cover/' + cover_name if is_exists else ""
+    return json.dumps(book, ensure_ascii=False).encode('utf8')
 
 
 @book_api.route('/<bookid>/content')
@@ -111,7 +112,7 @@ def get_books_by_author(author_id):
     data = dataset2dict(dataset, simple_view)
     if not data:
         return abort(404)
-    return jsonify(data)
+    return json.dumps(data, ensure_ascii=False).encode('utf8')
 
 
 @book_api.route('/by_name/<name>')
@@ -125,7 +126,7 @@ def get_book_by_name(name):
     result = [row2dict(row) for row in dataset]
     if not result:
         return abort(404)
-    return jsonify(result)
+    return json.dumps(result, ensure_ascii=False).encode('utf8')
 
 
 @book_api.route('/by_genre/<name>')
@@ -137,7 +138,7 @@ def get_book_by_genre(name):
     """
     dataset = app.wiring.book_dao.books_by_genres(name)
     result = [row2dict(row) for row in dataset]
-    return jsonify(result)
+    return json.dumps(result, ensure_ascii=False).encode('utf8')
 
 
 @book_api.route('/search/')
@@ -156,7 +157,7 @@ def get_book_by_search():
     dataset = app.wiring.book_dao.search_book(
         name=f_name, lang=f_lang, series=f_series, keyword=f_keyword, genre=f_genre, skip=f_skip, limit=f_limit)
     result = [row2dict(row) for row in dataset]
-    return jsonify(result)
+    return json.dumps(result, ensure_ascii=False).encode('utf8')
 
 
 @book_api.route('/<booksid>/fb2info')
@@ -165,7 +166,7 @@ def get_fb2info(booksid: str):
     if not book:
         abort(404)
     d = app.wiring.book_store.get_book_info(book.filename)
-    return jsonify(d)
+    return json.dumps(d, ensure_ascii=False).encode('utf8')
 
 
 @book_api.route('/popular')
@@ -175,4 +176,4 @@ def popular_books():
     if not books:
         abort(404)
     result = [row2dict(row) for row in books]
-    return jsonify(result)
+    return json.dumps(result, ensure_ascii=False).encode('utf8')

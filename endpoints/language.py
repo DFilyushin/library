@@ -1,3 +1,4 @@
+import json
 from flask import Blueprint
 from flask import abort
 from flask import request
@@ -15,7 +16,7 @@ def get_books_by_language(languageId):
     skip = request.args.get('skip', app.wiring.settings.DEFAULT_SKIP_RECORD, int)
     dataset = app.wiring.book_dao.books_by_language(languageId, limit=limit, skip=skip)
     result = [row2dict(row) for row in dataset]
-    return jsonify(result)
+    return json.dumps(result, ensure_ascii=False).encode('utf8')
 
 
 @language_api.route('/')
@@ -26,7 +27,7 @@ def get_languages():
     """
     languages = app.wiring.book_dao.get_languages_by_books()
     list_genres = [row['lang'] for row in languages]
-    return jsonify(list_genres)
+    return json.dumps(list_genres, ensure_ascii=False).encode('utf8')
 
 
 @language_api.route('/<languageId>/')
@@ -37,4 +38,4 @@ def get_language(languageId):
         return abort(404)
     except Exception as e:
         return abort(400)
-    return jsonify(row2dict(dataset))
+    return json.dumps(row2dict(dataset), ensure_ascii=False).encode('utf8')

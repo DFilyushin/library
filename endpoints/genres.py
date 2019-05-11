@@ -25,7 +25,7 @@ def get_all_genres():
     genres = [row2dict(row) for row in dataset]
     if not genres:
         return abort(404)
-    json_data = json.dumps(genres)
+    json_data = json.dumps(genres, ensure_ascii=False).encode('utf8')
     app.wiring.cache_db.set_value('genres', json_data, GENRE_CACHE_EXPIRE)
     response = app.response_class(
         response=json_data,

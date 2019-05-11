@@ -1,3 +1,4 @@
+import json
 from flask import request
 from flask import jsonify
 from flask import abort
@@ -22,7 +23,7 @@ def get_all_authors():
     result = [row2dict(row) for row in dataset]
     if not result:
         return abort(404)
-    return jsonify(result)
+    return json.dumps(result, ensure_ascii=False).encode('utf8')
 
 
 @authors_api.route('/<authorid>')
@@ -38,7 +39,7 @@ def get_author_by_id(authorid):
         return abort(404)
     except Exception as err:
         return abort(400)
-    return jsonify(row2dict(dataset))
+    return json.dumps(row2dict(dataset), ensure_ascii=False).encode('utf8')
 
 
 @authors_api.route('/start_with/<start_text_fullname>')
@@ -54,11 +55,11 @@ def get_authors_startwith(start_text_fullname):
     result = [row2dict(row) for row in dataset]
     if not result:
         return abort(404)
-    return jsonify(result)
+    return json.dumps(result, ensure_ascii=False).encode('utf8')
 
 
 @authors_api.route('/<id>/genres')
 def get_author_genres(id):
     genres = app.wiring.book_dao.get_genres_by_author(id)
     list_genres = [row['genres'] for row in genres]
-    return jsonify(list_genres)
+    return json.dumps(list_genres, ensure_ascii=False).encode('utf8')
