@@ -1,0 +1,42 @@
+server {
+    server_name library.name;
+    access_log /var/log/nginx/api_access.log;
+    error_log /var/log/nginx/api_error.log;
+
+    location /api/ {
+	    include proxy_params;
+	    proxy_pass http://unix:/var/www/library/library.sock;
+    }
+
+    location /cover/ {
+	    root /path/to/covers;
+	    valid_referers none blocked domen1 domen2 domen3; # disable hotlinks
+	    if ($invalid_referer) {
+            return 403; # 403 error for hotlinks
+        }
+	    expires 365d; # one year for cover
+	    access_log   off; # no save access log to covers
+    }
+
+    location / {
+	    root /var/www/library/web/build/;
+	    try_files $uri $uri/index.html;
+	    expires 30s;
+    }
+
+    # use ssl cert
+    listen 443 ssl;
+    ssl_certificate /path/to/fullchain.pem;
+    ssl_certificate_key /path/to/privkey.pem;
+    include /path/to/options-ssl-nginx.conf;
+    ssl_dhparam /path/to/ssl-dhparams.pem;
+
+}
+server {
+    if ($host = library.name) {
+        return 301 https://$host$request_uri;
+    }
+    server_name library.name;
+    listen 80;
+    return 404;
+}

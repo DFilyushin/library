@@ -1,0 +1,16 @@
+# Systemd config file for daemon library
+
+[Unit]
+Description=library gunicorn daemon
+After=network.target
+After=nginx.service
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/library
+Environment="FLASK_ENV=prod"
+ExecStart=/var/www/library/venv/bin/gunicorn --workers 5 --bind unix:/var/www/library/library.sock server:app
+
+[Install]
+WantedBy=multi-user.target
