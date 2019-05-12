@@ -1,8 +1,8 @@
 import json
 from flask import Blueprint, abort, current_app as app
 from app_utils import row2dict
+from app_const import CACHE_FOUR_WEEK
 
-GENRE_CACHE_EXPIRE = 604800  # the week
 genres_api = Blueprint('genres', __name__, url_prefix='/api/v1/genres')
 
 
@@ -26,7 +26,7 @@ def get_all_genres():
     if not genres:
         return abort(404)
     json_data = json.dumps(genres, ensure_ascii=False).encode('utf8')
-    app.wiring.cache_db.set_value('genres', json_data, GENRE_CACHE_EXPIRE)
+    app.wiring.cache_db.set_value('genres', json_data, CACHE_FOUR_WEEK)  # four week cache
     response = app.response_class(
         response=json_data,
         status=200,
