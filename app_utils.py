@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 
 def exp_dict(item):
+    # Explore dict for convert to json
     out = dict()
     for key, value in item.items():
         if type(value) == dict:
@@ -14,6 +15,7 @@ def exp_dict(item):
 
 
 def row2dict(row, view_list: list = None):
+    # Object to dict
     d = dict()
     for column in row.__dict__:
         if view_list:
@@ -43,6 +45,7 @@ def row2dict(row, view_list: list = None):
 
 
 def dataset2dict(dataset, view_list: list = None):
+    # Dataset to list of dict
     result = []
     for row in dataset:
         result.append(row2dict(row, view_list))
@@ -50,6 +53,7 @@ def dataset2dict(dataset, view_list: list = None):
 
 
 def get_periods():
+    # Create list of periods for all, one day, week, month
     now = datetime.now()
     result = list()
     result.append({'name': 'all', 'start': 0, 'end': now})
