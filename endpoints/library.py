@@ -2,6 +2,7 @@ import json
 from flask import Blueprint, abort, current_app as app
 from app_utils import row2dict
 from app_utils import get_periods
+from app_const import CACHE_FOUR_WEEK
 
 
 library_api = Blueprint('library', __name__, url_prefix='/api/v1')
@@ -31,7 +32,7 @@ def get_library_info():
         "booksCount": books_count
     }
     json_data = json.dumps(library_info)
-    app.wiring.cache_db.set_value('info', json_data, 18000)  # one hour cache
+    app.wiring.cache_db.set_value('info', json_data, CACHE_FOUR_WEEK)  # four week cache
     response = app.response_class(
         response=json_data,
         status=200,
