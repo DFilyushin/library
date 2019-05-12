@@ -9,14 +9,12 @@ class Genre(object):
                  parent: str = None,
                  titles: list = None,
                  detailed: list = None,
-                 sub_genres: list = None,
-                 count_books: int = 0):
+                 sub_genres: list = None):
         self.id = id
         self.parent = parent
         self.titles = titles
         self.detailed = detailed
         self.sub_genres = sub_genres
-        self.count_books = count_books
 
 
 class GenreDAO(object, metaclass=abc.ABCMeta):

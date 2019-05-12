@@ -3,6 +3,7 @@ import bson
 import bson.errors
 from pymongo.collection import Collection
 from pymongo.database import Database
+from pymongo import ASCENDING
 from storage.genre import Genre, GenreDAO, GenreNotFound
 
 
@@ -10,6 +11,10 @@ class MongoGenreDAO(GenreDAO):
 
     def __init__(self, mongo_database: Database):
         self.database = mongo_database
+        self.collection.create_index(
+            [("parent", ASCENDING)],
+            unique=False
+        )
 
     @property
     def collection(self) -> Collection:
@@ -62,22 +67,7 @@ class MongoGenreDAO(GenreDAO):
             sub_genres = []
             sql = [
                 {"$project": {"_id": 0, "genres_main": "$$ROOT"}},
-                {"$lookup": {"localField": "genres_main._id","from": "books","foreignField": "genres", "as": "books"}},
-                {"$unwind": {"path": "$books","preserveNullAndEmptyArrays": False}},
                 {"$match": {'genres_main.parent': document['_id']}},
-                {"$group": {
-                        "_id": {
-                            "genres_main_titles": "$genres_main.titles",
-                            "genres_main__id": "$genres_main._id",
-                        }
-                    }
-                },
-                {"$project": {
-                        "genres_main.id": "$_id.genres_main__id",
-                        "genres_main.titles": "$_id.genres_main_titles",
-                        "_id": 0
-                    }
-                }
             ]
             for sub_document in self.collection.aggregate(sql):
                 sub_genres.append(sub_document)
