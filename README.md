@@ -1,6 +1,6 @@
 # Library #
 
-Web application based on React, Python, Flask for create library by Lib.rus.ec zip-archives.
+![favicon-32x32](https://user-images.githubusercontent.com/5266873/57717064-93544b80-76a4-11e9-8371-8b0b49766c5c.png) Web application based on React, Python, Flask for create library by Lib.rus.ec zip-archives.
 
 # About #
 
