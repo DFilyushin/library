@@ -1,6 +1,6 @@
 {
-    "name": "",
-    "short_name": "",
+    "name": "FB2 book library",
+    "short_name": "Library",
     "icons": [
         {
             "src": "/android-chrome-192x192.png",

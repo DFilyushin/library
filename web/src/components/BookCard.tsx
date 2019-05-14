@@ -51,11 +51,11 @@ class BookCard extends Component<Prop, State> {
             <Card className={classes.card}>
                 <CardActionArea href={`/#/books/${book.id}/${this.transliterate(book.name)}`}>
                 <CardContent className={classes.content}>
-                    {book && book.cover && this.renderCover(book)}
+                    {this.renderCover(book)}
                     <Typography component="h5" variant="h5">{book.name}</Typography>
                     {book.series && <Typography variant="subtitle1" color="textSecondary">{book.series}{Number(book.sernum) > 0 && ': ' + book.sernum}</Typography>}
                     {this.renderAuthors(book.authors)}
-                    {book && book.city && <Typography variant="subtitle1" color="textSecondary">{`${book.city}, ${book.publisher}, ${book.year}`}</Typography>}
+                    {book.city && <Typography variant="subtitle1" color="textSecondary">{`${book.city}, ${book.publisher}, ${book.year}`}</Typography>}
                 </CardContent>
                 </CardActionArea>
             </Card>
@@ -67,12 +67,12 @@ class BookCard extends Component<Prop, State> {
         return (
             <Card className={classes.card}>
                 <CardContent>
-                    {book && book.cover && this.renderCover(book)}
+                    {this.renderCover(book)}
                     <Typography component="h5" variant="h5">{book.name}</Typography>
                     {book.series && <Typography variant="subtitle1" color="textSecondary">{book.series}{Number(book.sernum) > 0 && ': ' + book.sernum}</Typography>}
                     {this.renderAuthors(book.authors)}
-                    {book && book.city && <Typography variant="subtitle1" color="textSecondary">{`${book.city}, ${book.publisher}, ${book.year}`}</Typography>}
-                    {book && book.isbn && <Typography variant="caption">{`ISBN ${book.isbn}`}</Typography>}
+                    {book.city && <Typography variant="subtitle1" color="textSecondary">{`${book.city}, ${book.publisher}, ${book.year}`}</Typography>}
+                    {book.isbn && <Typography variant="caption">{`ISBN ${book.isbn}`}</Typography>}
                 </CardContent>
                 <CardActions>
                     <Button href={Endpoints.getBooksContent(book.id)}>Скачать FB2</Button>
@@ -85,7 +85,7 @@ class BookCard extends Component<Prop, State> {
         return (
             <div className="books">
                 <div className="book">
-                    <img style={styles.preview} src={book.cover} title={book.name} />
+                    <img style={styles.preview} src={'cover/' + book.id + '.jpg'} title={book.name} />
                 </div>
             </div>
         );
