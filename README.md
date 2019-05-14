@@ -18,7 +18,7 @@ Web application based on Python, Flask and React for create library by Lib.rus.e
 
 * Yarn 1.15
 
-# Install #
+# Install backend #
 
 1. create virtualenv 
 
@@ -28,4 +28,6 @@ Web application based on Python, Flask and React for create library by Lib.rus.e
 
 4. run tools/loader
 
-5. run run.py
+5. install nginx with ./deploy/library.nginx
+
+6. setup Systemd with ./deploy/library.service
