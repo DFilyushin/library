@@ -1,8 +1,12 @@
 # Library #
 
+Web application based on React, Python, Flask for create library by Lib.rus.ec zip-archives.
 
-Web application based on Python, Flask and React for create library by Lib.rus.ec zip-archives.
+# About #
 
+Library Librusec is freedom library distributed by zip-archives in torrents. That code created web application for view and download books.
+That code processing all zip archives files for extract image with coverpages and additional info. Extracted info put in mongo database for fast access.
+Backend code works like REST API service and can use for create bots, web application and other.
 
 # Requirements #
 
