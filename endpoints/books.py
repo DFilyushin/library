@@ -190,21 +190,6 @@ def get_book_by_search():
     return response
 
 
-@book_api.route('/<booksid>/fb2info')
-def get_fb2info(booksid: str):
-    book = app.wiring.book_dao.get_by_id(booksid)
-    if not book:
-        abort(404)
-    d = app.wiring.book_store.get_book_info(book.filename)
-    json_data = json.dumps(d, ensure_ascii=False).encode('utf8')
-    response = app.response_class(
-        response=json_data,
-        status=200,
-        mimetype='application/json'
-    )
-    return response
-
-
 @book_api.route('/popular')
 def popular_books():
     limit = request.args.get('limit', app.wiring.settings.DEFAULT_LIMITS, int)
