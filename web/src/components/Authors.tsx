@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 
 import { InputBase, List, ListItem, ListItemText, Theme, withStyles } from '@material-ui/core';
 
-import Endpoints from '../Endpoints';
+import Endpoints from '../utils/Endpoints';
 import Author from '../models/Author';
 
 interface Props {

@@ -1,9 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './App';
-import * as serviceWorker from './serviceWorker';
-import { CssBaseline } from '@material-ui/core';
 import { HashRouter } from 'react-router-dom';
+
+import { CssBaseline } from '@material-ui/core';
+
+import App from './components/App/App';
+import * as serviceWorker from './utils/serviceWorker';
 
 const app = (
     <React.Fragment>

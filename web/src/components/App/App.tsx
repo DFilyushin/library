@@ -1,15 +1,11 @@
 import React, { Component } from 'react';
-import { Link, Redirect, Route, Switch, withRouter } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 
 import { Tab, Tabs, Theme, Toolbar, withStyles } from '@material-ui/core';
 import AppBar from '@material-ui/core/AppBar';
 
-import Authors from './components/Authors';
-import BookPage from './components/BookPage';
-import Books from './components/Books';
-import BooksList from './components/BooksList';
-import Genres from './components/Genres';
-import Author from './models/Author';
+import Author from '../../models/Author';
+import { Routes } from './Routes';
 
 interface State {
     searchText: string;
@@ -66,15 +62,7 @@ class App extends Component<any, State> {
                     </Toolbar>
                 </AppBar>
                 <div className={classes.root}>
-                    <Switch>
-                        <Route exact path="/" render={() => <Redirect to="/genres" />} />
-                        <Route exact path="/authors" component={Authors} />
-                        <Route exact path="/genres" component={Genres} />
-                        <Route exact path="/books" component={Books} />
-                        <Route path="/genres/:genre" component={BooksList} />
-                        <Route path="/authors/:authorId" component={BooksList} />
-                        <Route path="/books/:bookId" component={BookPage} />
-                    </Switch>
+                    <Routes />
                 </div>
             </React.Fragment>
         );

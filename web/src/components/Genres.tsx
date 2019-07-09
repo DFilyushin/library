@@ -7,7 +7,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 
-import Endpoints from '../Endpoints';
+import Endpoints from '../utils/Endpoints';
 import Genre from '../models/Genre';
 
 interface State {

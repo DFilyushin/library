@@ -3,7 +3,7 @@ import { Redirect } from 'react-router-dom';
 
 import { Container, Grid } from '@material-ui/core';
 
-import Endpoints from '../Endpoints';
+import Endpoints from '../utils/Endpoints';
 import Book from '../models/Book';
 import BookCard from './BookCard';
 

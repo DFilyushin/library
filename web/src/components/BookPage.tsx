@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import Endpoints from '../Endpoints';
+import Endpoints from '../utils/Endpoints';
 import Book from '../models/Book';
 import BookCard from './BookCard';
 import { Container } from '@material-ui/core';

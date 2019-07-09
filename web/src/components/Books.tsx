@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 
-import { InputBase, Theme, withStyles } from '@material-ui/core';
+import { Container, Grid, InputBase, Theme, withStyles } from '@material-ui/core';
 
-import Endpoints from '../Endpoints';
 import Book from '../models/Book';
+import Endpoints from '../utils/Endpoints';
 import BookCard from './BookCard';
 
 interface State {
@@ -94,11 +94,15 @@ class Books extends Component<any, State> {
                     }}
                 />
                 {books.length > 0 &&
-                    <React.Fragment>
-                        {
-                            books.map(book => <BookCard book={book} preview={true} key={book.id}/>)
-                        }
-                    </React.Fragment>
+                    <Container maxWidth="lg">
+                        <Grid container spacing={4}>
+                            {books.map(book => (
+                                <Grid key={book.id} item xs={12} sm={6} md={4}>
+                                    <BookCard book={book} preview={true} />
+                                </Grid>
+                            ))}
+                        </Grid>
+                    </Container>
                 }
             </React.Fragment>
         );

@@ -6,7 +6,7 @@ import {
 } from '@material-ui/core';
 
 import CyrillicToTranslit from '../../node_modules/cyrillic-to-translit-js/CyrillicToTranslit';
-import Endpoints from '../Endpoints';
+import Endpoints from '../utils/Endpoints';
 import Author from '../models/Author';
 import Book from '../models/Book';
 import Consts from '../utils/Consts';
