@@ -1,10 +1,14 @@
 import React, { Component } from 'react';
-import Genre from '../models/Genre';
-import { List, ListItem, ListItemText, withStyles, Theme, Collapse, Divider, ListItemSecondaryAction, IconButton } from '@material-ui/core';
+
+import {
+    Collapse, Divider, IconButton, List, ListItem, ListItemText, Theme, withStyles
+} from '@material-ui/core';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
+
 import Endpoints from '../Endpoints';
+import Genre from '../models/Genre';
 
 interface State {
     loading: boolean;
@@ -12,19 +16,19 @@ interface State {
     expanded: string;
 }
 
-const styles = ({ spacing, palette } : Theme) => ({
+const styles = (theme: Theme) => ({
     root: {
       width: '100%',
       maxWidth: 360,
-      backgroundColor: palette.background.paper,
+      backgroundColor: theme.palette.background.paper,
     },
     progress: {
-        margin: spacing.unit * 2,
+        margin: theme.spacing(2),
     },
-  });
+});
 
 class Genres extends Component<any, State> {
-    private static GenresData: Array<Genre> = [];
+    private static GenresData: Genre[] = [];
 
     constructor(props: any) {
         super(props);
@@ -43,14 +47,14 @@ class Genres extends Component<any, State> {
             return;
         }
 
-        this.setState({ loading: true })
+        this.setState({ loading: true });
         fetch(Endpoints.getGenres())
             .then(results => {
                 return results.json();
             })
-            .then((data: Array<Genre>) => {
+            .then((data: Genre[]) => {
                 // sort genres
-                let sorted = data.sort((a, b) => {
+                const sorted = data.sort((a, b) => {
                     if (a.titles.ru < b.titles.ru) {
                         return -1;
                     }
@@ -59,7 +63,7 @@ class Genres extends Component<any, State> {
                     }
                     return 0;
                 });
-                
+
                 // sort sub-genres
                 sorted.forEach(g => {
                     g.sub_genres = g.sub_genres.sort((a, b) => {
@@ -72,7 +76,7 @@ class Genres extends Component<any, State> {
                         return 0;
                     });
                 });
-    
+
                 this.setState({
                     loading: false,
                     genres: sorted
@@ -88,13 +92,13 @@ class Genres extends Component<any, State> {
     selectAuthor(event: any, id: string | undefined) {
         this.setState({
             ...this.state
-        })
+        });
     }
 
     handleClick = (event: Event | undefined, genre: string) => {
         event!.preventDefault();
         this.setState(state => ({ expanded: state.expanded === genre ? '' : genre }));
-    };
+    }
 
     render() {
         const { classes} = this.props;

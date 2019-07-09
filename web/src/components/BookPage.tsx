@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
-import Book from '../models/Book';
-import { Redirect } from 'react-router';
-import BookCard from './BookCard';
-import Endpoints from '../Endpoints';
 
-interface State
-{
+import Endpoints from '../Endpoints';
+import Book from '../models/Book';
+import BookCard from './BookCard';
+import { Container } from '@material-ui/core';
+
+interface State {
     book?: Book;
 }
 
@@ -14,7 +14,7 @@ class BookPage extends Component<any, State> {
         super(props);
         this.state = {
             book: undefined
-        }
+        };
     }
 
     componentDidMount() {
@@ -31,7 +31,7 @@ class BookPage extends Component<any, State> {
             })
             .catch(e => {
                 console.log(e);
-            })
+            });
     }
 
     render() {
@@ -39,7 +39,11 @@ class BookPage extends Component<any, State> {
         if (!book) {
             return null;
         }
-        return <BookCard book={book} preview={false}/>;
+        return (
+            <Container maxWidth="sm">
+                <BookCard book={book} preview={false} />
+            </Container>
+        );
     }
 }
 

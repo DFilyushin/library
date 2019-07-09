@@ -11,13 +11,13 @@ export interface Genre {
      */
     id: string;
     /**
-     * 
+     *
      * @type {GenreTitles}
      * @memberof Genre
      */
     titles: GenreTitles;
     /**
-     * 
+     *
      * @type {GenreDetailed}
      * @memberof Genre
      */
@@ -27,7 +27,7 @@ export interface Genre {
      * @type {Array<SubGenre>}
      * @memberof Genre
      */
-    sub_genres: Array<SubGenre>;
+    sub_genres: SubGenre[];
 }
 
 /**
@@ -37,13 +37,13 @@ export interface Genre {
  */
 export interface GenreDetailed {
     /**
-     * 
+     *
      * @type {string}
      * @memberof GenreDetailed
      */
     en: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof GenreDetailed
      */
@@ -57,13 +57,13 @@ export interface GenreDetailed {
  */
 export interface GenreTitles {
     /**
-     * 
+     *
      * @type {string}
      * @memberof GenreTitles
      */
     en: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof GenreTitles
      */
@@ -83,7 +83,7 @@ export interface SubGenre {
      */
     id: string;
     /**
-     * 
+     *
      * @type {SubGenreTitles}
      * @memberof SubGenre
      */
@@ -97,13 +97,13 @@ export interface SubGenre {
  */
 export interface SubGenreTitles {
     /**
-     * 
+     *
      * @type {string}
      * @memberof SubGenreTitles
      */
     en: string;
     /**
-     * 
+     *
      * @type {string}
      * @memberof SubGenreTitles
      */

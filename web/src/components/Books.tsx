@@ -1,33 +1,35 @@
 import React, { Component } from 'react';
-import Book from '../models/Book';
+
 import { InputBase, Theme, withStyles } from '@material-ui/core';
-import BookCard from './BookCard';
+
 import Endpoints from '../Endpoints';
+import Book from '../models/Book';
+import BookCard from './BookCard';
 
 interface State {
     searchText: string;
     books: Book[];
 }
 
-const styles = ({ palette, spacing } : Theme) => ({
+const styles = (theme: Theme) => ({
     root: {
       width: '100%',
       maxWidth: 360,
-      backgroundColor: palette.background.paper,
+      backgroundColor: theme.palette.background.paper,
     },
     inputRoot: {
       color: 'inherit',
       width: '100%',
-      backgroundColor: palette.common.white
+      backgroundColor: theme.palette.common.white
     },
     inputInput: {
-      paddingTop: spacing.unit,
-      paddingRight: spacing.unit,
-      paddingBottom: spacing.unit,
-      paddingLeft: spacing.unit,
+      paddingTop: theme.spacing(1),
+      paddingRight: theme.spacing(1),
+      paddingBottom: theme.spacing(1),
+      paddingLeft: theme.spacing(1),
       width: '100%',
     },
-  });
+});
 
 class Books extends Component<any, State> {
     constructor(props: any) {
@@ -35,15 +37,15 @@ class Books extends Component<any, State> {
         this.state = {
             searchText: '',
             books: []
-        }
+        };
     }
 
-    componentDidMount(){
-        document.addEventListener("keydown", this.escFunction, false);
+    componentDidMount() {
+        document.addEventListener('keydown', this.escFunction, false);
     }
-    
-    componentWillUnmount(){
-        document.removeEventListener("keydown", this.escFunction, false);
+
+    componentWillUnmount() {
+        document.removeEventListener('keydown', this.escFunction, false);
     }
 
     escFunction = (event: any) => {
@@ -63,13 +65,13 @@ class Books extends Component<any, State> {
                 .then(results => {
                     return results.json();
                 })
-                .then((data: Array<Book>) => {
+                .then((data: Book[]) => {
                     this.setState({
                         books: data
                     });
                 })
                 .catch(() => {
-                    this.setState({ books: [] })
+                    this.setState({ books: [] });
                 });
         }
 
