@@ -37,6 +37,9 @@ class BooksList extends Component<any, State> {
                 return results.json();
             })
             .then((data: Book[]) => {
+                if (data.some(b => b.lang === 'ru')) {
+                    data = data.filter(b => b.lang === 'ru');
+                }
                 const sorted = data.sort((a, b) => this.compareBySequenceAndName(a, b));
                 this.setState({
                     books: sorted

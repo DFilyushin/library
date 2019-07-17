@@ -84,6 +84,7 @@ class BookCard extends Component<Prop, State> {
         return (
             <Card className={classes.card} style={{ height: cardHeight }}>
                 <div>
+                    <a href={Endpoints.getBooksContent(book.id)}>
                     <AtomicImage
                         src={Consts.getCoverImage(book.id)}
                         title={book.name}
@@ -91,6 +92,7 @@ class BookCard extends Component<Prop, State> {
                         footer={''+book.year}
                         onResize={this.handleResize}
                     />
+                    </a>
                 </div>
                 <CardActionArea href={`/#/books/${book.id}/${this.transliterate(book.name)}`}>
                     <div className={classes.details}>
