@@ -8,6 +8,7 @@ from flask import jsonify
 from flask import send_file
 from app_utils import row2dict, dataset2dict
 from storage.stat import Stat
+from tools.translit import translit_it
 
 book_api = Blueprint('books', __name__, url_prefix='/api/v1/books')
 
@@ -51,7 +52,7 @@ def download_book(bookid):
     """
     Get book content
     :param bookid: Id of book
-    :return:
+    :return: File
     """
     session = app.check_session()
     if not session:
@@ -62,7 +63,8 @@ def download_book(bookid):
     dataset = app.wiring.book_dao.get_by_id(bookid)
     if not dataset:
         return abort(404)
-    output_file = '{}.{}'.format(dataset.filename, file_type)
+    simple_filename = '{}_{}'.format(dataset.authors[0]['last_name'], dataset.name)
+    output_file = '{}.{}'.format(translit_it(simple_filename[:250]), file_type)
     full_path_to_file = app.wiring.book_store.extract_book(int(dataset.filename), file_type == 'zip')
     if not full_path_to_file:
         return abort(404)
