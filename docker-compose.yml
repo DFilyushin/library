@@ -1,0 +1,28 @@
+version: "3.7"
+
+services:
+
+  redis:
+    image: redis
+    container_name: cache
+    restart: always
+    expose:
+      - 6379
+
+  mongo:
+    image: mongo:4.0.4
+    container_name: mongodb
+    restart: always
+    expose:
+      - 27017
+
+
+  library:
+    build: ./backend/
+    links:
+      - redis
+    container_name: library
+    restart: always
+    expose:
+      - 8080
+

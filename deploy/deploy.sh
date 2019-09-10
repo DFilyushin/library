@@ -8,11 +8,11 @@ venv="/var/www/library/venv/bin/python"
 
 git pull origin
 
-rsync --exclude '*_settings.py'  ./*.py ${library}
-rsync ./storage/*.py ${library}/storage/
-rsync ./tools/*.py ${library}/tools/
-rsync ./endpoints/*.py ${library}/endpoints/
-rsync ./models/*.py ${library}/models/
+rsync --exclude '*_settings.py'  ./backend/*.py ${library}
+rsync ./backend/storage/*.py ${library}/storage/
+rsync ./backend/tools/*.py ${library}/tools/
+rsync ./backend/endpoints/*.py ${library}/endpoints/
+rsync ./backend/models/*.py ${library}/models/
 
 chown -R ${webuser}:${webuser} ${library}/
 
