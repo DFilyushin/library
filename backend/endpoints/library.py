@@ -1,5 +1,6 @@
 import json
 from flask import Blueprint, abort, current_app as app
+from storage.version import VersionNotFound, LibraryVersion
 from app_utils import row2dict
 from app_utils import get_periods
 from app_const import CACHE_FOUR_WEEK
@@ -15,16 +16,19 @@ def get_library_info():
     :return:
     """
     json_data = app.wiring.cache_db.get_value('info')
-    if json_data:
-        response = app.response_class(
-            response=json_data,
-            status=200,
-            mimetype='application/json'
-        )
-        return response
+    # if json_data:
+    #     response = app.response_class(
+    #         response=json_data,
+    #         status=200,
+    #         mimetype='application/json'
+    #     )
+    #     return response
     authors_count = app.wiring.author_dao.get_count_authors()
     books_count = app.wiring.book_dao.get_count_books()
-    version = app.wiring.library_dao.get_version()
+    try:
+        version = app.wiring.library_dao.get_version()
+    except VersionNotFound:
+        version = LibraryVersion()
 
     library_info = {
         "version": version.version,

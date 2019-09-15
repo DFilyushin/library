@@ -6,7 +6,7 @@ from tools.update_version import update_version
 from tools.language_loader import LanguageLoader
 from tools.genre_loader import GenreLoader
 
-# Import new data
+# Update library
 
 # 1 step - import index files with books and authors
 # 2 step - import from zips
@@ -16,7 +16,9 @@ from tools.genre_loader import GenreLoader
 # Final - update library version
 
 
-if __name__ == '__main__':
+def update_library():
+
+
     wiring = Wiring()
 
     # 1
@@ -40,3 +42,7 @@ if __name__ == '__main__':
 
     # Final - update version library
     update_version(wiring)
+
+
+if __name__ == '__main__':
+    update_library()

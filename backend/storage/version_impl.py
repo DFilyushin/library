@@ -1,6 +1,6 @@
 from pymongo.collection import Collection
 from pymongo.database import Database
-from storage.version import LibraryVersion, LibraryVersionDAO
+from storage.version import LibraryVersion, LibraryVersionDAO, VersionNotFound
 
 
 class MongoVersionDAO(LibraryVersionDAO):
@@ -14,7 +14,8 @@ class MongoVersionDAO(LibraryVersionDAO):
 
     @property
     def collection(self) -> Collection:
-        return self.database['lversion']
+        value = self.database['lversion']
+        return value
 
     @classmethod
     def to_bson(cls, version: LibraryVersion):
@@ -30,4 +31,7 @@ class MongoVersionDAO(LibraryVersionDAO):
         return LibraryVersion(**document)
 
     def get_version(self):
-        return self.from_bson(self.collection.find_one())
+        item = self.collection.find_one()
+        if not item:
+            raise VersionNotFound
+        return self.from_bson(item)

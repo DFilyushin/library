@@ -5,6 +5,7 @@ from pymongo.database import Database
 import dev_settings
 import prod_settings
 import test_settings
+import docker_settings
 from storage.book_impl import MongoBookDAO
 from storage.author_impl import MongoAuthorDAO
 from storage.genre_impl import MongoGenreDAO
@@ -28,8 +29,11 @@ class Wiring(object):
         self.settings = {
             "dev": dev_settings,
             "prod": prod_settings,
-            'test': test_settings
+            "test": test_settings,
+            "docker": docker_settings
         }[env]
+
+        print('Mongo base: {}:{}:{}'.format(os.environ.get('MONGO_HOST'), os.environ.get('MONGO_PORT'), os.environ.get('MONGO_DATABASE')))
 
         self.cache_db = AppCache(
             self.settings.REDIS_HOST,
@@ -39,12 +43,16 @@ class Wiring(object):
         self.session_db = redis.StrictRedis(
             self.settings.REDIS_HOST,
             self.settings.REDIS_PORT,
-            self.settings.REDIS_SESSION_DB
+            self.settings.REDIS_CACHE_DB
         )
         self.use_sessions = self.settings.USE_SESSIONS
         self.mongo_client = MongoClient(
             host=self.settings.MONGO_HOST,
             port=self.settings.MONGO_PORT)
+        self.mongo_client = MongoClient(
+            host=self.settings.MONGO_HOST,
+            port=self.settings.MONGO_PORT
+        )
         self.mongo_database = self.mongo_client[self.settings.MONGO_DATABASE]
         self.book_dao = MongoBookDAO(self.mongo_database)
         self.book_ext_dao = MongoExtBookDAO(self.mongo_database)
