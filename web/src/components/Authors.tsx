@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { InputBase, List, ListItem, ListItemText, Theme, withStyles } from '@material-ui/core';
+import { InputBase, List, ListItem, ListItemText, Theme, withStyles, Button } from '@material-ui/core';
 
 import Endpoints from '../utils/Endpoints';
 import Author from '../models/Author';
@@ -22,7 +22,7 @@ const styles = (theme: Theme) => ({
     },
     inputRoot: {
       color: 'inherit',
-      width: '100%',
+      width: '50%',
       backgroundColor: theme.palette.common.white
     },
     inputInput: {
@@ -30,7 +30,7 @@ const styles = (theme: Theme) => ({
       paddingRight: theme.spacing(1),
       paddingBottom: theme.spacing(1),
       paddingLeft: theme.spacing(1),
-      width: '100%',
+      // width: '100%',
     },
   });
 
@@ -62,9 +62,13 @@ class Authors extends Component<Props, State> {
 
     handleSearchChange = (event: any)  => {
         const searchByAuthor = event.target.value;
+        this.setState({ searchText: event.target.value });
+    }
 
-        if (searchByAuthor) {
-            fetch(Endpoints.getAuthorsStartWith(searchByAuthor, 15, 0))
+    handleSearchAuthor = (event: any) => {
+        console.log(this.state.searchText);
+        if (this.state.searchText) {
+            fetch(Endpoints.getAuthorsStartWith(this.state.searchText, 15, 0))
                 .then(results => {
                     return results.json();
                 })
@@ -77,8 +81,6 @@ class Authors extends Component<Props, State> {
                     this.setState({ authors: [] });
                 });
         }
-
-        this.setState({ searchText: event.target.value });
     }
 
     render() {
@@ -90,12 +92,13 @@ class Authors extends Component<Props, State> {
                     value={searchText}
                     onChange={this.handleSearchChange}
                     autoFocus
-                    placeholder="Поиск по ФИО автора"
+                    placeholder="Поиск по фамилии имени автора"
                     classes={{
                         root: classes.inputRoot,
                         input: classes.inputInput,
                     }}
                 />
+                <Button onClick={this.handleSearchAuthor}>Поиск</Button>
                 {authors.length > 0 &&
                     <List className={classes.root}>
                         {
