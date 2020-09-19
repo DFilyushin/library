@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 
-import { InputBase, List, ListItem, ListItemText, Theme, withStyles } from '@material-ui/core';
+import {InputBase, List, ListItem, ListItemText, Theme, withStyles, Button, Container} from '@material-ui/core';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 import Endpoints from '../utils/Endpoints';
 import Author from '../models/Author';
@@ -12,6 +13,7 @@ interface Props {
 interface State {
     searchText: string;
     authors: Author[];
+    loaded: boolean;
 }
 
 const styles = (theme: Theme) => ({
@@ -22,7 +24,7 @@ const styles = (theme: Theme) => ({
     },
     inputRoot: {
       color: 'inherit',
-      width: '100%',
+      width: '50%',
       backgroundColor: theme.palette.common.white
     },
     inputInput: {
@@ -30,7 +32,7 @@ const styles = (theme: Theme) => ({
       paddingRight: theme.spacing(1),
       paddingBottom: theme.spacing(1),
       paddingLeft: theme.spacing(1),
-      width: '100%',
+      // width: '100%',
     },
   });
 
@@ -39,7 +41,8 @@ class Authors extends Component<Props, State> {
         super(props);
         this.state = {
             searchText: '',
-            authors: []
+            authors: [],
+            loaded: false
         };
     }
 
@@ -60,42 +63,57 @@ class Authors extends Component<Props, State> {
         }
     }
 
+    handleKeyDown = (event: any) => {
+        if (event.key === 'Enter') {
+            this.findAuthors(this.state.searchText)
+        }
+    }
+
     handleSearchChange = (event: any)  => {
         const searchByAuthor = event.target.value;
-
-        if (searchByAuthor) {
-            fetch(Endpoints.getAuthorsStartWith(searchByAuthor, 15, 0))
-                .then(results => {
-                    return results.json();
-                })
-                .then((data: Author[]) => {
-                    this.setState({
-                        authors: data
-                    });
-                })
-                .catch(() => {
-                    this.setState({ authors: [] });
-                });
-        }
-
         this.setState({ searchText: event.target.value });
+    }
+
+    findAuthors = async (textString: string) => {
+        this.setState({loaded: true})
+        fetch(Endpoints.getAuthorsStartWith(textString, 15, 0))
+            .then(results => {
+                return results.json();
+            })
+            .then((data: Author[]) => {
+                this.setState({
+                    authors: data,
+                    loaded: false
+                });
+            })
+            .catch(() => {
+                this.setState({ authors: [], loaded: false });
+            });
+    }
+
+    handleSearchAuthor = (event: any) => {
+        if (this.state.searchText) {
+            this.findAuthors(this.state.searchText)
+        }
     }
 
     render() {
         const { classes } = this.props;
-        const { searchText, authors } = this.state;
+        const { searchText, authors, loaded } = this.state;
         return (
             <React.Fragment>
                 <InputBase
                     value={searchText}
                     onChange={this.handleSearchChange}
+                    onKeyDown={this.handleKeyDown}
                     autoFocus
-                    placeholder="Поиск по ФИО автора"
+                    placeholder="Поиск по фамилии имени автора"
                     classes={{
                         root: classes.inputRoot,
                         input: classes.inputInput,
                     }}
                 />
+                <Button onClick={this.handleSearchAuthor}>Поиск</Button>
                 {authors.length > 0 &&
                     <List className={classes.root}>
                         {
@@ -108,6 +126,11 @@ class Authors extends Component<Props, State> {
                             })
                         }
                     </List>
+                }
+                {authors.length === 0  && loaded &&
+                <Container maxWidth="lg">
+                    <CircularProgress/>
+                </Container>
                 }
             </React.Fragment>
         );
