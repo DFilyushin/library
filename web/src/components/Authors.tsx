@@ -13,7 +13,7 @@ interface Props {
 interface State {
     searchText: string;
     authors: Author[];
-    find: boolean;
+    loaded: boolean;
 }
 
 const styles = (theme: Theme) => ({
@@ -42,7 +42,7 @@ class Authors extends Component<Props, State> {
         this.state = {
             searchText: '',
             authors: [],
-            find: false
+            loaded: false
         };
     }
 
@@ -75,7 +75,7 @@ class Authors extends Component<Props, State> {
     }
 
     findAuthors = async (textString: string) => {
-        this.setState({find: true})
+        this.setState({loaded: true})
         fetch(Endpoints.getAuthorsStartWith(textString, 15, 0))
             .then(results => {
                 return results.json();
@@ -83,11 +83,11 @@ class Authors extends Component<Props, State> {
             .then((data: Author[]) => {
                 this.setState({
                     authors: data,
-                    find: false
+                    loaded: false
                 });
             })
             .catch(() => {
-                this.setState({ authors: [], find: false });
+                this.setState({ authors: [], loaded: false });
             });
     }
 
@@ -99,7 +99,7 @@ class Authors extends Component<Props, State> {
 
     render() {
         const { classes } = this.props;
-        const { searchText, authors, find } = this.state;
+        const { searchText, authors, loaded } = this.state;
         return (
             <React.Fragment>
                 <InputBase
@@ -127,7 +127,7 @@ class Authors extends Component<Props, State> {
                         }
                     </List>
                 }
-                {authors.length === 0  && find &&
+                {authors.length === 0  && loaded &&
                 <Container maxWidth="lg">
                     <CircularProgress/>
                 </Container>

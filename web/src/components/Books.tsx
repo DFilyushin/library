@@ -10,7 +10,7 @@ import BookCard from './BookCard';
 interface State {
     searchText: string;
     books: Book[];
-    find: boolean;
+    loaded: boolean;
 }
 
 const styles = (theme: Theme) => ({
@@ -39,7 +39,7 @@ class Books extends Component<any, State> {
         this.state = {
             searchText: '',
             books: [],
-            find: false
+            loaded: false
         };
     }
 
@@ -61,7 +61,7 @@ class Books extends Component<any, State> {
     }
 
     searchBook = async (findString: string) => {
-        this.setState({find: true});
+        this.setState({loaded: true});
         fetch(Endpoints.getBooksByName(findString, 15, 0))
             .then(results => {
                 return results.json();
@@ -69,12 +69,12 @@ class Books extends Component<any, State> {
             .then((data: Book[]) => {
                 this.setState({
                     books: data,
-                    find: false
+                    loaded: false
                 });
             })
             .catch(() => {
                 this.setState({books: []});
-                this.setState({find: false});
+                this.setState({loaded: false});
             });
     };
 
@@ -99,7 +99,7 @@ class Books extends Component<any, State> {
 
     render() {
         const {classes} = this.props;
-        const {searchText, books, find} = this.state;
+        const {searchText, books, loaded} = this.state;
         return (
             <React.Fragment>
                 <InputBase
@@ -125,7 +125,7 @@ class Books extends Component<any, State> {
                     </Grid>
                 </Container>
                 }
-                {books.length === 0  && find &&
+                {books.length === 0  && loaded &&
                 <Container maxWidth="lg">
                     <CircularProgress/>
                 </Container>
