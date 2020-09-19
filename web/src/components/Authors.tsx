@@ -1,9 +1,9 @@
 import React, {Component} from 'react';
 
-import {InputBase, List, ListItem, ListItemText, Theme, withStyles, Button, Container, Paper} from '@material-ui/core';
+import {List, ListItem, ListItemText, Theme, withStyles, Container} from '@material-ui/core';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import SearchIcon from '@material-ui/icons/Search';
 
+import FindLine from './FindLine';
 import Endpoints from '../utils/Endpoints';
 import Author from '../models/Author';
 
@@ -23,30 +23,6 @@ const styles = (theme: Theme) => ({
         width: '100%',
         backgroundColor: theme.palette.background.paper,
     },
-    rootPaper: {
-        paddingTop: theme.spacing(2),
-        paddingRight: theme.spacing(2),
-        paddingBottom: theme.spacing(2),
-        paddingLeft: theme.spacing(2),
-        display: 'flex',
-        alignItems: 'center',
-        width: '100%',
-    },
-    inputRoot: {
-        color: 'inherit',
-        width: '100%',
-        backgroundColor: theme.palette.common.white
-    },
-    inputInput: {
-        paddingTop: theme.spacing(1),
-        paddingRight: theme.spacing(1),
-        paddingBottom: theme.spacing(1),
-        paddingLeft: theme.spacing(1),
-        // width: '100%',
-    },
-    inputButton: {
-        width: '100%'
-    }
 });
 
 class Authors extends Component<Props, State> {
@@ -74,18 +50,12 @@ class Authors extends Component<Props, State> {
                 authors: []
             });
         }
-    };
-
-    handleKeyDown = (event: any) => {
-        if (event.key === 'Enter') {
-            this.findAuthors(this.state.searchText);
-        }
-    };
+    }
 
     handleSearchChange = (event: any) => {
         const searchByAuthor = event.target.value;
         this.setState({searchText: event.target.value});
-    };
+    }
 
     findAuthors = async (textString: string) => {
         this.setState({loaded: true});
@@ -102,34 +72,25 @@ class Authors extends Component<Props, State> {
             .catch(() => {
                 this.setState({authors: [], loaded: false});
             });
-    };
+    }
 
     handleSearchAuthor = (event: any) => {
         if (this.state.searchText) {
             this.findAuthors(this.state.searchText);
         }
-    };
+    }
 
     render() {
         const {classes} = this.props;
         const {searchText, authors, loaded} = this.state;
         return (
             <React.Fragment>
-                <Paper className={classes.rootPaper}>
-                    <InputBase
-                        value={searchText}
-                        onChange={this.handleSearchChange}
-                        onKeyDown={this.handleKeyDown}
-                        autoFocus
-                        placeholder="Поиск по фамилии имени автора"
-                        classes={{
-                            root: classes.inputRoot,
-                            input: classes.inputInput,
-                        }}
-                    />
-                    <SearchIcon onClick={this.handleSearchAuthor}/>
-                </Paper>
-
+                <FindLine
+                    searchText={searchText}
+                    onClickFind={this.handleSearchAuthor}
+                    placeholder="Поиск по фамилии имени автора"
+                    onChangeField={this.handleSearchChange}
+                />
                 {authors.length > 0 &&
                 <List className={classes.root}>
                     {
