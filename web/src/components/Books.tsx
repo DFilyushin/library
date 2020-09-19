@@ -1,11 +1,12 @@
 import React, {Component} from 'react';
 
-import {Button, Container, Grid, InputBase, Theme, withStyles} from '@material-ui/core';
+import {Button, Container, Grid, InputBase, Paper, Theme, withStyles} from '@material-ui/core';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
 import Book from '../models/Book';
 import Endpoints from '../utils/Endpoints';
 import BookCard from './BookCard';
+import SearchIcon from '@material-ui/icons/Search';
 
 interface State {
     searchText: string;
@@ -18,10 +19,20 @@ const styles = (theme: Theme) => ({
         width: '100%',
         maxWidth: 360,
         backgroundColor: theme.palette.background.paper,
+        paddingTop: theme.spacing(5),
+    },
+    rootPaper: {
+        paddingTop: theme.spacing(2),
+        paddingRight: theme.spacing(2),
+        paddingBottom: theme.spacing(2),
+        paddingLeft: theme.spacing(2),
+        display: 'flex',
+        alignItems: 'center',
+        width: '100%',
     },
     inputRoot: {
         color: 'inherit',
-        width: '50%',
+        width: '100%',
         backgroundColor: theme.palette.common.white
     },
     inputInput: {
@@ -58,7 +69,7 @@ class Books extends Component<any, State> {
                 books: []
             });
         }
-    }
+    };
 
     searchBook = async (findString: string) => {
         this.setState({loaded: true});
@@ -102,20 +113,22 @@ class Books extends Component<any, State> {
         const {searchText, books, loaded} = this.state;
         return (
             <React.Fragment>
-                <InputBase
-                    value={searchText}
-                    onChange={this.handleSearchChange}
-                    onKeyDown={this.handleKeyDown}
-                    autoFocus
-                    placeholder="Поиск по названию книги"
-                    classes={{
-                        root: classes.inputRoot,
-                        input: classes.inputInput,
-                    }}
-                />
-                <Button onClick={this.handleSearchBook}>Поиск</Button>
+                <Paper className={classes.rootPaper}>
+                    <InputBase
+                        value={searchText}
+                        onChange={this.handleSearchChange}
+                        onKeyDown={this.handleKeyDown}
+                        autoFocus
+                        placeholder="Поиск по названию книги"
+                        classes={{
+                            root: classes.inputRoot,
+                            input: classes.inputInput,
+                        }}
+                    />
+                    <SearchIcon onClick={this.handleSearchBook}/>
+                </Paper>
                 {books.length > 0 &&
-                <Container maxWidth="lg">
+                <Container maxWidth="lg" >
                     <Grid container spacing={4}>
                         {books.map(book => (
                             <Grid key={book.id} item xs={12} sm={6} md={4}>
@@ -125,7 +138,7 @@ class Books extends Component<any, State> {
                     </Grid>
                 </Container>
                 }
-                {books.length === 0  && loaded &&
+                {books.length === 0 && loaded &&
                 <Container maxWidth="lg">
                     <CircularProgress/>
                 </Container>
