@@ -84,7 +84,7 @@ class BookCard extends Component<Prop, State> {
         return (
             <Card className={classes.card} style={{ height: cardHeight }}>
                 <div>
-                    <a href={Endpoints.getBooksContent(book.id)}>
+                    <a href={Endpoints.getBooksContent(book.id, 'fb2')}>
                     <AtomicImage
                         src={Consts.getCoverImage(book.id)}
                         title={book.name}
@@ -130,7 +130,8 @@ class BookCard extends Component<Prop, State> {
                         {book.isbn && <Typography variant="caption">{`ISBN ${book.isbn}`}</Typography>}
                     </CardContent>
                     <CardActions>
-                        <Button variant="outlined" color="primary" href={Endpoints.getBooksContent(book.id)}>Скачать FB2</Button>
+                        <Button variant="outlined" color="primary" href={Endpoints.getBooksContent(book.id, 'fb2')}>Скачать FB2</Button>
+                        <Button variant="outlined" color="primary" href={Endpoints.getBooksContent(book.id, 'zip')}>Скачать zip</Button>
                     </CardActions>
                 </div>
             </Card>

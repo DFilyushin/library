@@ -67,7 +67,7 @@ class BooksList extends Component<any, State> {
         }
 
         if (downloadBookId) {
-            return <Redirect to={Endpoints.getBooksContent(downloadBookId)} />;
+            return <Redirect to={Endpoints.getBooksContent(downloadBookId, 'fb2')} />;
         }
 
         return (

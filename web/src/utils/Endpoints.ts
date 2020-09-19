@@ -46,9 +46,10 @@ class Endpoints {
     /**
      * Download book content
      */
-    static getBooksContent(bookId: string) {
-        return `${Endpoints.API_URL}/books/${bookId}/content`;
+    static getBooksContent(bookId: string, bookType: string) {
+        return `${Endpoints.API_URL}/books/${bookId}/content?type=${bookType}`;
     }
+
 }
 
 export default Endpoints;
