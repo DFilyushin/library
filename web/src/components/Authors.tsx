@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 
-import { InputBase, List, ListItem, ListItemText, Theme, withStyles, Button } from '@material-ui/core';
+import {InputBase, List, ListItem, ListItemText, Theme, withStyles, Button, Container} from '@material-ui/core';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 import Endpoints from '../utils/Endpoints';
 import Author from '../models/Author';
@@ -12,6 +13,7 @@ interface Props {
 interface State {
     searchText: string;
     authors: Author[];
+    find: boolean;
 }
 
 const styles = (theme: Theme) => ({
@@ -39,7 +41,8 @@ class Authors extends Component<Props, State> {
         super(props);
         this.state = {
             searchText: '',
-            authors: []
+            authors: [],
+            find: false
         };
     }
 
@@ -60,37 +63,49 @@ class Authors extends Component<Props, State> {
         }
     }
 
+    handleKeyDown = (event: any) => {
+        if (event.key === 'Enter') {
+            this.findAuthors(this.state.searchText)
+        }
+    }
+
     handleSearchChange = (event: any)  => {
         const searchByAuthor = event.target.value;
         this.setState({ searchText: event.target.value });
     }
 
-    handleSearchAuthor = (event: any) => {
-        console.log(this.state.searchText);
-        if (this.state.searchText) {
-            fetch(Endpoints.getAuthorsStartWith(this.state.searchText, 15, 0))
-                .then(results => {
-                    return results.json();
-                })
-                .then((data: Author[]) => {
-                    this.setState({
-                        authors: data
-                    });
-                })
-                .catch(() => {
-                    this.setState({ authors: [] });
+    findAuthors = async (textString: string) => {
+        this.setState({find: true})
+        fetch(Endpoints.getAuthorsStartWith(textString, 15, 0))
+            .then(results => {
+                return results.json();
+            })
+            .then((data: Author[]) => {
+                this.setState({
+                    authors: data,
+                    find: false
                 });
+            })
+            .catch(() => {
+                this.setState({ authors: [], find: false });
+            });
+    }
+
+    handleSearchAuthor = (event: any) => {
+        if (this.state.searchText) {
+            this.findAuthors(this.state.searchText)
         }
     }
 
     render() {
         const { classes } = this.props;
-        const { searchText, authors } = this.state;
+        const { searchText, authors, find } = this.state;
         return (
             <React.Fragment>
                 <InputBase
                     value={searchText}
                     onChange={this.handleSearchChange}
+                    onKeyDown={this.handleKeyDown}
                     autoFocus
                     placeholder="Поиск по фамилии имени автора"
                     classes={{
@@ -111,6 +126,11 @@ class Authors extends Component<Props, State> {
                             })
                         }
                     </List>
+                }
+                {authors.length === 0  && find &&
+                <Container maxWidth="lg">
+                    <CircularProgress/>
+                </Container>
                 }
             </React.Fragment>
         );
