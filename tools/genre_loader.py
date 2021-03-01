@@ -2,7 +2,7 @@ import os
 import io
 from datetime import datetime
 from wiring import Wiring
-from storage.genre import Genre
+from dto.genre import Genre
 import xml.etree.ElementTree as ET
 
 

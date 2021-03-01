@@ -1,5 +1,5 @@
 class Endpoints {
-    static API_URL: string = 'https://books.toadstool.online/api/v1';
+    static API_URL: string = 'https://books.toadstool.su/api/v1';
 
     /**
      * Get all genres

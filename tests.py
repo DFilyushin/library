@@ -1,7 +1,7 @@
 import unittest
-from storage.genre import Genre
-from storage.author import Author
-from storage.book import Book
+from dto.genre import Genre
+from dto.author import Author
+from dto.book import Book
 from server import app
 from wiring import Wiring
 import json

@@ -5,7 +5,7 @@ from flask import abort
 from flask import Blueprint
 from flask import current_app as app
 from app_utils import row2dict
-from storage.author import AuthorNotFound
+from dao.interfaces.author import AuthorNotFound
 
 
 authors_api = Blueprint('authors', __name__, url_prefix='/api/v1/authors')

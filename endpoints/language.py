@@ -5,7 +5,7 @@ from flask import request
 from flask import jsonify
 from flask import current_app as app
 from app_utils import row2dict
-from storage.language import LanguageNotFound
+from dao.interfaces.language import LanguageNotFound
 
 language_api = Blueprint('language', __name__, url_prefix='/api/v1/languages')
 

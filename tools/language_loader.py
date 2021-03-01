@@ -2,7 +2,8 @@ import os
 import io
 from datetime import datetime
 from wiring import Wiring
-from storage.language import Language, LanguageExists
+from dto.language import Language
+from dao.interfaces.language import LanguageExists
 
 
 class LanguageLoader(object):

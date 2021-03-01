@@ -4,8 +4,9 @@ import bson
 from datetime import datetime
 from time import time
 from wiring import Wiring
-from storage.book import Book
-from storage.author import Author, AuthorNotFound
+from dto.book import Book
+from dto.author import Author
+from dao.interfaces.author import AuthorNotFound
 
 
 class BookLoader(object):

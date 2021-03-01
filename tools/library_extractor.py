@@ -3,7 +3,7 @@ import zipfile
 from datetime import datetime
 from wiring import Wiring
 from tools.book_object import FBBookFile
-from storage.book import BookNotFound
+from dao.interfaces.book import BookNotFound
 from time import time
 
 

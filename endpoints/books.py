@@ -7,7 +7,7 @@ from flask import abort
 from flask import jsonify
 from flask import send_file
 from app_utils import row2dict, dataset2dict
-from storage.stat import Stat
+from dto.statistic import Stat
 from tools.translit import translit_it
 
 book_api = Blueprint('books', __name__, url_prefix='/api/v1/books')

@@ -2,7 +2,7 @@ import os
 import io
 from datetime import datetime
 from wiring import Wiring
-from storage.version import LibraryVersion
+from dto.version import LibraryVersion
 
 
 def update_version(wiring: Wiring):

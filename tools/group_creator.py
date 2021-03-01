@@ -1,6 +1,7 @@
 from datetime import datetime
 from wiring import Wiring
-from storage.group import Group, GroupExist
+from dto.group import Group
+from dao.interfaces.group import GroupExist
 
 
 def create_group(wiring: Wiring):

@@ -6,9 +6,9 @@ from flask import request
 from flask import abort
 from flask import jsonify
 from flask import make_response
-from storage.user import User, UserExists, UserNotFound
-from storage.session import SessionNotFound
-from storage.starred_book import StarredBook, StarExists
+from dao.interfaces.user import User, UserExists, UserNotFound
+from dao.interfaces.session import SessionNotFound
+from dao.interfaces.starred_book import StarredBook, StarExists
 
 SESSION_ID = 'X-User-Session-ID'
 

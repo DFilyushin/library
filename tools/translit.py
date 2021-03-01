@@ -36,7 +36,7 @@ table_ru_eng = {
 }
 
 
-def translit_it(source: str)->str:
+def translit_it(source: str) -> str:
     """
     Transliterate russian characters to english
     :param source: String with russian characters
@@ -46,7 +46,7 @@ def translit_it(source: str)->str:
     first_letter = True
     strings = list(source)
     result = list()
-    
+
     while strings:
         symbol = str(strings.pop(0))
         tr_symb = table_ru_eng.get(symbol.lower(), symbol)
