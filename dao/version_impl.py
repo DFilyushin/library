@@ -1,6 +1,6 @@
 from pymongo.collection import Collection
 from pymongo.database import Database
-from storage.version import LibraryVersion, LibraryVersionDAO
+from dao.interfaces.version import LibraryVersion, LibraryVersionDAO
 
 
 class MongoVersionDAO(LibraryVersionDAO):

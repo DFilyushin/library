@@ -5,7 +5,7 @@ from pymongo.collection import Collection
 from pymongo.database import Database
 from pymongo.errors import DuplicateKeyError
 from pymongo import ASCENDING
-from storage.language import Language, LanguageDAO, LanguageNotFound, LanguageExists
+from dao.interfaces.language import Language, LanguageDAO, LanguageNotFound, LanguageExists
 
 
 class MongoLanguageDAO(LanguageDAO):

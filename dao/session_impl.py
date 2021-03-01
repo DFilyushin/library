@@ -4,7 +4,7 @@ if sys.version_info[1] >= 6:
     import secrets
 else:
     from uuid import uuid4
-from storage.session import Session, SessionDAO, SessionNotFound
+from dao.interfaces.session import Session, SessionDAO, SessionNotFound
 from redis import StrictRedis
 import json
 

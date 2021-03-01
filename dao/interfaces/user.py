@@ -1,19 +1,6 @@
 import abc
 from typing import Iterable
-
-
-class User(object):
-
-    def __init__(self,
-                 id: str = None,
-                 login: str = None,
-                 password: str = None,
-                 group: str = 'default'
-                 ):
-        self.id = id
-        self.login = login
-        self.password = password
-        self.group = group
+from dto.user import User
 
 
 class UserDAO(object, metaclass=abc.ABCMeta):
@@ -39,7 +26,7 @@ class UserDAO(object, metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def delete(self, login:str)->bool:
+    def delete(self, login: str) -> bool:
         pass
 
 

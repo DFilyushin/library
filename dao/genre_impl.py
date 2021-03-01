@@ -4,7 +4,7 @@ import bson.errors
 from pymongo.collection import Collection
 from pymongo.database import Database
 from pymongo import ASCENDING
-from storage.genre import Genre, GenreDAO, GenreNotFound
+from dao.interfaces.genre import Genre, GenreDAO, GenreNotFound
 
 
 class MongoGenreDAO(GenreDAO):

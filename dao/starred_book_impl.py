@@ -5,7 +5,7 @@ from pymongo.collection import Collection
 from pymongo.database import Database
 from pymongo import ASCENDING
 from pymongo.errors import DuplicateKeyError
-from storage.starred_book import StarredBook, StarredBookDAO, StarExists
+from dao.interfaces.starred_book import StarredBook, StarredBookDAO, StarExists
 
 
 class MongoStarredBook(StarredBookDAO):

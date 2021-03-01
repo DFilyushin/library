@@ -1,13 +1,6 @@
 import abc
 from typing import Iterable
-
-
-class Language(object):
-
-    def __init__(self, id: str = None, ext: str = None, name: str = None):
-        self.id = id
-        self.ext = ext
-        self.name = name
+from dto.language import Language
 
 
 class LanguageDAO(object, metaclass=abc.ABCMeta):
@@ -31,6 +24,7 @@ class LanguageDAO(object, metaclass=abc.ABCMeta):
 
 class LanguageNotFound(Exception):
     pass
+
 
 class LanguageExists(Exception):
     pass

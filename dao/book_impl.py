@@ -4,7 +4,7 @@ import bson.errors
 from pymongo import ASCENDING
 from pymongo.collection import Collection
 from pymongo.database import Database
-from storage.book import Book, BookDAO, BookNotFound
+from dao.interfaces.book import Book, BookDAO, BookNotFound
 
 
 class MongoBookDAO(BookDAO):

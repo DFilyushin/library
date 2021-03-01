@@ -5,9 +5,9 @@ from pymongo.collection import Collection
 from pymongo.database import Database
 from pymongo import ASCENDING
 from pymongo.errors import DuplicateKeyError
-from storage.group import Group, GroupDAO, GroupNotFound, GroupExist
-from storage.user import User, UserDAO
-from storage.user_impl import MongoUserDAO
+from dao.interfaces.group import Group, GroupDAO, GroupNotFound, GroupExist
+from dao.interfaces.user import User, UserDAO
+from dao.user_impl import MongoUserDAO
 
 
 class MongoGroupDAO(GroupDAO):

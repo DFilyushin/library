@@ -1,7 +1,6 @@
 import re
 from typing import Iterable
-from storage.stat import Stat
-from storage.stat import StatDAO
+from dao.interfaces.stat import Stat, StatDAO
 from pymongo.collection import Collection
 from pymongo.database import Database
 from pymongo import ASCENDING

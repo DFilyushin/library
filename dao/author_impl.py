@@ -5,7 +5,7 @@ from pymongo.collection import Collection
 from pymongo.database import Database
 from pymongo import ASCENDING
 from pymongo.errors import DuplicateKeyError
-from storage.author import Author, AuthorDAO, AuthorNotFound
+from dao.interfaces.author import Author, AuthorDAO, AuthorNotFound
 
 
 class MongoAuthorDAO(AuthorDAO):

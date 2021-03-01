@@ -1,5 +1,5 @@
-from storage.book_ext import ExtBook
-from storage.book_impl import MongoBookDAO
+from dao.interfaces.book_ext import ExtBook
+from dao.book_impl import MongoBookDAO
 
 
 class MongoExtBookDAO(MongoBookDAO):

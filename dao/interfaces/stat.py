@@ -1,18 +1,7 @@
 import abc
 from typing import Iterable
 from datetime import datetime
-
-
-class Stat(object):
-
-    def __init__(self, ip: str = None, resource: str = None, timestamp: str = None, login: str = None, action: str = None):
-        if not timestamp:
-            timestamp = datetime.now()
-        self.ip = ip
-        self.resource = resource
-        self.timestamp = timestamp
-        self.login = login
-        self.action = action
+from dto.statistic import Stat
 
 
 class StatDAO(object, metaclass=abc.ABCMeta):
@@ -30,7 +19,7 @@ class StatDAO(object, metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def downloads_by_login(self, login: str)->int:
+    def downloads_by_login(self, login: str) -> int:
         pass
 
     @abc.abstractmethod
@@ -38,17 +27,17 @@ class StatDAO(object, metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def top_download_books(self, limit: int)->Iterable[str]:
+    def top_download_books(self, limit: int) -> Iterable[str]:
         pass
 
     @abc.abstractmethod
-    def top_viewed_books(self, limit: int)->Iterable[str]:
+    def top_viewed_books(self, limit: int) -> Iterable[str]:
         pass
 
     @abc.abstractmethod
-    def count_download(self, start: datetime, end: datetime)->int:
+    def count_download(self, start: datetime, end: datetime) -> int:
         pass
 
     @abc.abstractmethod
-    def count_viewed(self, start: datetime, end: datetime)->int:
+    def count_viewed(self, start: datetime, end: datetime) -> int:
         pass

@@ -5,7 +5,7 @@ from pymongo.collection import Collection
 from pymongo.database import Database
 from pymongo import ASCENDING
 from pymongo.errors import DuplicateKeyError
-from storage.user import User, UserDAO, UserNotFound, UserExists
+from dao.interfaces.user import User, UserDAO, UserNotFound, UserExists
 
 
 class MongoUserDAO(UserDAO):

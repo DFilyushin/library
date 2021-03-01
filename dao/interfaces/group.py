@@ -1,28 +1,21 @@
 import abc
 from typing import Iterable
 from storage.user import User
-
-
-class Group(object):
-
-    def __init__(self, id: str = None, name: str = None, limit_per_day: int = 0):
-        self.id = id
-        self.name = name
-        self.limit_per_day = limit_per_day
+from dto.group import Group
 
 
 class GroupDAO(object, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
-    def create(self, group: Group)->Group:
+    def create(self, group: Group) -> Group:
         pass
 
     @abc.abstractmethod
-    def update(self, group: Group)->Group:
+    def update(self, group: Group) -> Group:
         pass
 
     @abc.abstractmethod
-    def get_by_name(self, name: str)->Group:
+    def get_by_name(self, name: str) -> Group:
         pass
 
     @abc.abstractmethod
@@ -30,7 +23,7 @@ class GroupDAO(object, metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def get_users(self, group: str)->Iterable[User]:
+    def get_users(self, group: str) -> Iterable[User]:
         pass
 
     @abc.abstractmethod
