@@ -23,6 +23,8 @@ class Settings(BaseSettings):
 
     use_sessions: bool
 
+    cache_four_week: int
+
     result_limit: int
     result_skip: int
 

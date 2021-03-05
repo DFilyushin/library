@@ -12,8 +12,10 @@ from tools.translit import translit_it
 
 book_api = Blueprint('books', __name__, url_prefix='/api/v1/books')
 
-simple_view = ['id', 'authors', 'city', 'genres', 'isbn', 'lang', 'name', 'pub_name', 'publisher', 'series', 'sernum', 'year']
-full_view = ['id', 'authors', 'city', 'genres', 'isbn', 'lang', 'name', 'pub_name', 'publisher', 'series', 'sernum', 'year', 'annotation']
+simple_view = ['id', 'authors', 'city', 'genres', 'isbn', 'lang', 'name', 'pub_name', 'publisher', 'series', 'sernum',
+               'year']
+full_view = ['id', 'authors', 'city', 'genres', 'isbn', 'lang', 'name', 'pub_name', 'publisher', 'series', 'sernum',
+             'year', 'annotation']
 
 
 def stat_it(wiring, action: str, resource: str, username: str):
@@ -104,9 +106,9 @@ def download_books(booksids: str):
         for item in ids:
             stat_it(app.wiring, 'bd', item, session.login)
         return send_file(zip_file,
-                           mimetype='application/zip',
-                           attachment_filename='books.zip',
-                           as_attachment=True)
+                         mimetype='application/zip',
+                         attachment_filename='books.zip',
+                         as_attachment=True)
 
 
 @book_api.route('/by_author/<author_id>')

@@ -1,24 +1,23 @@
-class Book(object):
-    def __init__(
-            self,
-            **kwargs
+from typing import Optional
+from pydantic import BaseModel
 
-    ):
-        self.id = kwargs.get('id', '')
-        self.name = kwargs.get('name', '')
-        self.authors = kwargs.get('authors', '')
-        self.series = kwargs.get('series', '')
-        self.sernum = kwargs.get('sernum', '')
-        self.filename = kwargs.get('filename', '')
-        self.deleted = kwargs.get('deleted', '')
-        self.lang = kwargs.get('lang', '')
-        self.keywords = kwargs.get('keywords', '')
-        self.added = kwargs.get('added', '')
-        self.genres = kwargs.get('genres', '')
-        self.year = kwargs.get('year', '')
-        self.isbn = kwargs.get('isbn', '')
-        self.city = kwargs.get('city', '')
-        self.pub_name = kwargs.get('pub_name', '')
-        self.publisher = kwargs.get('publisher', '')
-        self.height = kwargs.get('height', '')
-        self.width = kwargs.get('width', '')
+
+class Book(BaseModel):
+    id: str
+    name: Optional[str]
+    authors: Optional[str]
+    series: Optional[str]
+    sernum: Optional[str]
+    filename: Optional[str]
+    deleted: Optional[str]
+    lang: Optional[str]
+    keywords: Optional[str]
+    added: Optional[str]
+    genres: Optional[str]
+    year: Optional[str]
+    isbn: Optional[str]
+    city: Optional[str]
+    pub_name: Optional[str]
+    publisher: Optional[str]
+    height: Optional[str]
+    width: Optional[str]

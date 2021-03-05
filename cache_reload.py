@@ -3,6 +3,7 @@ import json
 from app_utils import row2dict
 from wiring import Wiring
 from app_const import CACHE_FOUR_WEEK
+from settings import Settings
 
 # Cache reload by deploy
 

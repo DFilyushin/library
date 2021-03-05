@@ -54,7 +54,6 @@ def get_author_by_id(authorid):
     return response
 
 
-
 @authors_api.route('/start_with/<start_text_fullname>')
 def get_authors_startwith(start_text_fullname):
     """
